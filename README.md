@@ -90,14 +90,15 @@ We support the following MTL methods in ```weight_methods.py```.
 
 ## Citation 
 If you use this work, or otherwise found our work valuable, please consider citing the paper:
+[DeepMTL2R: A Library for Deep Multi-task Learning to Rank](https://arxiv.org/abs/2602.14519)
 
 ```
-@article{chaoshengdong-deepmtl2r2025,
+@article{dong2026deepmtl2r,
   title={DeepMTL2R: A Library for Deep Multi-task Learning to Rank},
-  author={Dong, Chaosheng and Xiao, Peiyao and Ji, Kaiyi and Martinez, Aleix},
-  year={2025}
+  author={Dong, Chaosheng and Xiao, Peiyao and Wang, Yijia and Ji, Kaiyi},
+  journal={arXiv preprint arXiv:2602.14519},
+  year={2026}
 }
-
 ```
 
 ## Contact
