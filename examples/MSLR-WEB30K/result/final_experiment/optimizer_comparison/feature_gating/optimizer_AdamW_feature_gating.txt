@@ -1,0 +1,20 @@
+=== Optimizer Comparison: AdamW on feature_gating ===
+Optimizer: AdamW
+Optimizer Args: {'lr': 0.0001, 'weight_decay': 0.01}
+Baseline NDCG@10: 0.252121
+Fine-tune Epochs: 2
+Task Indices: [0, 131]
+
+epoch:0	lr:1.00e-04	task:0	Val Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.21584833), 'ndcg_10': np.float32(0.321456), 'ndcg_20': np.float32(0.3198176), 'ndcg_30': np.float32(0.36417738)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+epoch:1	lr:1.00e-04	task:0	Val Metrics:{'ndcg_1': np.float32(0.40714288), 'ndcg_5': np.float32(0.25965077), 'ndcg_10': np.float32(0.3132878), 'ndcg_20': np.float32(0.31278205), 'ndcg_30': np.float32(0.35214984)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+
+==================================================
+SUMMARY: AdamW on feature_gating
+==================================================
+Baseline NDCG@10:       0.252121
+Peak NDCG@10:           0.321456
+Peak ΔNDCG@10:          +0.069335
+Best Epoch:             0
+Epochs to Plateau:      2
+Final NDCG@10:          0.313288
+NDCG@10 History:        [np.float32(0.321456), np.float32(0.3132878)]

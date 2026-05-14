@@ -1,0 +1,20 @@
+=== Optimizer Comparison: AdamW on matryoshka ===
+Optimizer: AdamW
+Optimizer Args: {'lr': 0.0001, 'weight_decay': 0.01}
+Baseline NDCG@10: 0.298355
+Fine-tune Epochs: 2
+Task Indices: [0, 131]
+
+epoch:0	lr:1.00e-04	task:0	Val Metrics:{'ndcg_1': np.float32(0.40714288), 'ndcg_5': np.float32(0.2965202), 'ndcg_10': np.float32(0.34153873), 'ndcg_20': np.float32(0.3255004), 'ndcg_30': np.float32(0.36442408)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+epoch:1	lr:1.00e-04	task:0	Val Metrics:{'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.18423909), 'ndcg_10': np.float32(0.25347126), 'ndcg_20': np.float32(0.28091502), 'ndcg_30': np.float32(0.33049005)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+
+==================================================
+SUMMARY: AdamW on matryoshka
+==================================================
+Baseline NDCG@10:       0.298355
+Peak NDCG@10:           0.341539
+Peak ΔNDCG@10:          +0.043184
+Best Epoch:             0
+Epochs to Plateau:      2
+Final NDCG@10:          0.253471
+NDCG@10 History:        [np.float32(0.34153873), np.float32(0.25347126)]

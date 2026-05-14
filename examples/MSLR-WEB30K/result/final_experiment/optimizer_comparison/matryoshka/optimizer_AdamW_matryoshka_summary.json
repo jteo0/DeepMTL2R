@@ -1,0 +1,31 @@
+{
+  "optimizer": "AdamW",
+  "experiment": "matryoshka",
+  "baseline_ndcg10": "0.29835522",
+  "peak_ndcg10": "0.34153873",
+  "peak_delta_ndcg10": "0.043183506",
+  "best_epoch": 0,
+  "plateau_epoch": null,
+  "epochs_to_plateau": 2,
+  "final_ndcg10": "0.25347126",
+  "ndcg10_history": [
+    "0.34153873",
+    "0.25347126"
+  ],
+  "all_task_final_metrics": {
+    "0": {
+      "ndcg_1": "0.19285715",
+      "ndcg_5": "0.18423909",
+      "ndcg_10": "0.25347126",
+      "ndcg_20": "0.28091502",
+      "ndcg_30": "0.33049005"
+    },
+    "131": {
+      "ndcg_1": "9.023893e-13",
+      "ndcg_5": "7.6291044e-06",
+      "ndcg_10": "nan",
+      "ndcg_20": "nan",
+      "ndcg_30": "nan"
+    }
+  }
+}

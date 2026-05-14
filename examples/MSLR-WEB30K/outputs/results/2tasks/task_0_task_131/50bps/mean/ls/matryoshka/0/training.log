@@ -1,0 +1,208 @@
+2026-05-14 14:24:48,899 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:24:48,899 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:24:48,899 - allrank.utils.ltr_logging - INFO - will execute cp C:\Users\maule\Documents\Repositories\TP-TBI\DeepMTL2R\examples\MSLR-WEB30K\configs\config_matryoshka.json outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\used_config.json
+2026-05-14 14:24:48,930 - allrank.utils.ltr_logging - INFO - exit_code = 1
+2026-05-14 14:25:59,329 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:25:59,330 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:27:05,249 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:27:05,249 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:27:05,262 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:27:05,298 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:28:18,406 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:28:18,407 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:28:18,409 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:28:18,455 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:28:18,458 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:31:07,453 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:31:07,454 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:31:07,456 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:31:07,501 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:31:07,504 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:31:56,917 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_0.pkl
+2026-05-14 14:31:56,918 - allrank.utils.ltr_logging - INFO - Current:0.3254031240940094 Best:0.0
+2026-05-14 14:31:56,918 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 14:32:47,259 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_1.pkl
+2026-05-14 14:32:47,259 - allrank.utils.ltr_logging - INFO - Current:0.321347713470459 Best:0.3254031240940094
+2026-05-14 14:32:47,259 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 14:33:33,336 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_2.pkl
+2026-05-14 14:33:33,337 - allrank.utils.ltr_logging - INFO - Current:0.26724258065223694 Best:0.3254031240940094
+2026-05-14 14:33:33,355 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model.pkl
+2026-05-14 14:33:33,356 - allrank.utils.ltr_logging - INFO - Computing Effective Dimensionality Efficiency (Matryoshka)...
+2026-05-14 14:33:41,473 - allrank.utils.ltr_logging - INFO - Task 0 Dimensionality Efficiency: {32: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 64: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 128: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 256: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}}
+2026-05-14 14:33:49,091 - allrank.utils.ltr_logging - INFO - Task 131 Dimensionality Efficiency: {32: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 64: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 128: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 256: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}}
+2026-05-14 14:37:58,434 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:37:58,434 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:37:58,436 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:37:58,488 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:37:58,493 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:38:57,764 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_0.pkl
+2026-05-14 14:38:57,764 - allrank.utils.ltr_logging - INFO - Current:0.3254031240940094 Best:0.0
+2026-05-14 14:38:57,764 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 14:40:40,753 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:40:40,754 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:40:40,755 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:40:40,788 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:40:40,789 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:41:29,490 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_0.pkl
+2026-05-14 14:41:29,491 - allrank.utils.ltr_logging - INFO - Current:0.3254031240940094 Best:0.0
+2026-05-14 14:41:29,491 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 14:42:17,665 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_1.pkl
+2026-05-14 14:42:17,665 - allrank.utils.ltr_logging - INFO - Current:0.321347713470459 Best:0.3254031240940094
+2026-05-14 14:42:17,666 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 14:43:09,653 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_2.pkl
+2026-05-14 14:43:09,653 - allrank.utils.ltr_logging - INFO - Current:0.26724258065223694 Best:0.3254031240940094
+2026-05-14 14:43:09,673 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model.pkl
+2026-05-14 14:43:09,673 - allrank.utils.ltr_logging - INFO - Computing Effective Dimensionality Efficiency (Matryoshka)...
+2026-05-14 14:43:17,583 - allrank.utils.ltr_logging - INFO - Task 0 Dimensionality Efficiency: {32: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 64: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 128: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}, 256: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.24554962), 'ndcg_10': np.float32(0.29877174), 'ndcg_20': np.float32(0.2998303), 'ndcg_30': np.float32(0.3343339)}}
+2026-05-14 14:43:25,727 - allrank.utils.ltr_logging - INFO - Task 131 Dimensionality Efficiency: {32: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 64: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 128: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}, 256: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}}
+2026-05-14 14:55:01,165 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 14:55:01,165 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 14:55:01,167 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:55:01,212 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 14:55:01,214 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:55:47,011 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_0.pkl
+2026-05-14 14:55:47,012 - allrank.utils.ltr_logging - INFO - Current:0.3254031240940094 Best:0.0
+2026-05-14 14:55:47,012 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 14:56:33,956 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_1.pkl
+2026-05-14 14:56:33,956 - allrank.utils.ltr_logging - INFO - Current:0.321347713470459 Best:0.3254031240940094
+2026-05-14 14:56:33,956 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 14:57:26,747 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_2.pkl
+2026-05-14 14:57:26,748 - allrank.utils.ltr_logging - INFO - Current:0.26724258065223694 Best:0.3254031240940094
+2026-05-14 14:57:26,772 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model.pkl
+2026-05-14 14:57:26,772 - allrank.utils.ltr_logging - INFO - Computing Effective Dimensionality Efficiency (Matryoshka)...
+2026-05-14 14:57:35,624 - allrank.utils.ltr_logging - INFO - Task 0 Dimensionality Efficiency:
+{
+  "32": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.24554962",
+    "ndcg_10": "0.29877174",
+    "ndcg_20": "0.2998303",
+    "ndcg_30": "0.3343339"
+  },
+  "64": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.24554962",
+    "ndcg_10": "0.29877174",
+    "ndcg_20": "0.2998303",
+    "ndcg_30": "0.3343339"
+  },
+  "128": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.24554962",
+    "ndcg_10": "0.29877174",
+    "ndcg_20": "0.2998303",
+    "ndcg_30": "0.3343339"
+  },
+  "256": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.24554962",
+    "ndcg_10": "0.29877174",
+    "ndcg_20": "0.2998303",
+    "ndcg_30": "0.3343339"
+  }
+}
+2026-05-14 14:57:43,936 - allrank.utils.ltr_logging - INFO - Task 131 Dimensionality Efficiency:
+{
+  "32": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "64": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "128": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "256": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  }
+}
+2026-05-14 16:17:41,425 - allrank.utils.ltr_logging - INFO - === Matryoshka Feature Projection | weight_index=0 ===
+2026-05-14 16:17:41,426 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0
+2026-05-14 16:17:41,428 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 16:17:41,475 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 2,143,460 (Shared: 2,142,976, Specific: 484)
+2026-05-14 16:17:41,478 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 16:18:34,124 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_0.pkl
+2026-05-14 16:18:34,124 - allrank.utils.ltr_logging - INFO - Current:0.3254031240940094 Best:0.0
+2026-05-14 16:18:34,124 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 16:19:30,639 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model_epoch_1.pkl
+2026-05-14 16:19:30,639 - allrank.utils.ltr_logging - INFO - Current:0.321347713470459 Best:0.3254031240940094
+2026-05-14 16:19:30,655 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\matryoshka\0\model.pkl
+2026-05-14 16:19:30,656 - allrank.utils.ltr_logging - INFO - Computing Effective Dimensionality Efficiency (Matryoshka)...
+2026-05-14 16:19:40,229 - allrank.utils.ltr_logging - INFO - Task 0 Dimensionality Efficiency:
+{
+  "32": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.22677135",
+    "ndcg_10": "0.28127933",
+    "ndcg_20": "0.28238264",
+    "ndcg_30": "0.3176563"
+  },
+  "64": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.22677135",
+    "ndcg_10": "0.28127933",
+    "ndcg_20": "0.28238264",
+    "ndcg_30": "0.3176563"
+  },
+  "128": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.22677135",
+    "ndcg_10": "0.28127933",
+    "ndcg_20": "0.28238264",
+    "ndcg_30": "0.3176563"
+  },
+  "256": {
+    "ndcg_1": "0.19285715",
+    "ndcg_5": "0.22677135",
+    "ndcg_10": "0.28127933",
+    "ndcg_20": "0.28238264",
+    "ndcg_30": "0.3176563"
+  }
+}
+2026-05-14 16:19:49,619 - allrank.utils.ltr_logging - INFO - Task 131 Dimensionality Efficiency:
+{
+  "32": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "64": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "128": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  },
+  "256": {
+    "ndcg_1": "9.023893e-13",
+    "ndcg_5": "7.6291044e-06",
+    "ndcg_10": "nan",
+    "ndcg_20": "nan",
+    "ndcg_30": "nan"
+  }
+}

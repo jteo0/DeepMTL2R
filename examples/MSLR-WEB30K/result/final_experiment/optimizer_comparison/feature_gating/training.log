@@ -1,0 +1,4 @@
+2026-05-14 16:51:55,740 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 0/1 | NDCG@10=0.321456 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:52:19,998 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 1/1 | NDCG@10=0.313288 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:52:49,144 - allrank.utils.ltr_logging - INFO - [SGD_Momentum] Epoch 0/1 | NDCG@10=0.285653 | Best=0.285653 | LR=1.00e-03
+2026-05-14 16:53:14,642 - allrank.utils.ltr_logging - INFO - [SGD_Momentum] Epoch 1/1 | NDCG@10=0.312467 | Best=0.312467 | LR=1.00e-03

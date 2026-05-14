@@ -1,0 +1,49 @@
+2026-05-14 14:25:07,456 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 14:25:07,456 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 14:25:07,456 - allrank.utils.ltr_logging - INFO - will execute cp C:\Users\maule\Documents\Repositories\TP-TBI\DeepMTL2R\examples\MSLR-WEB30K\configs\config_gating.json outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\used_config.json
+2026-05-14 14:25:07,479 - allrank.utils.ltr_logging - INFO - exit_code = 1
+2026-05-14 14:26:16,462 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 14:26:16,462 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 14:27:17,571 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 14:27:17,572 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 14:27:17,574 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:27:17,604 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 810,497 (Shared: 810,368, Specific: 129)
+2026-05-14 14:34:23,707 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 14:34:23,708 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 14:34:23,713 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 14:34:23,744 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 810,497 (Shared: 810,368, Specific: 129)
+2026-05-14 14:34:23,749 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 14:35:08,976 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_0.pkl
+2026-05-14 14:35:08,976 - allrank.utils.ltr_logging - INFO - Current:0.29649412631988525 Best:0.0
+2026-05-14 14:35:08,977 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 14:35:54,463 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_1.pkl
+2026-05-14 14:35:54,463 - allrank.utils.ltr_logging - INFO - Current:0.27224671840667725 Best:0.29649412631988525
+2026-05-14 14:35:54,464 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 14:36:40,509 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_2.pkl
+2026-05-14 14:36:40,509 - allrank.utils.ltr_logging - INFO - Current:0.24445480108261108 Best:0.29649412631988525
+2026-05-14 14:36:40,521 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model.pkl
+2026-05-14 15:00:49,735 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 15:00:49,735 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 15:00:49,737 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 15:00:49,762 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 810,497 (Shared: 810,368, Specific: 129)
+2026-05-14 15:00:49,763 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 15:01:36,138 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_0.pkl
+2026-05-14 15:01:36,138 - allrank.utils.ltr_logging - INFO - Current:0.29649412631988525 Best:0.0
+2026-05-14 15:01:36,138 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 15:02:34,205 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_1.pkl
+2026-05-14 15:02:34,206 - allrank.utils.ltr_logging - INFO - Current:0.27224671840667725 Best:0.29649412631988525
+2026-05-14 15:02:34,207 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 15:03:33,465 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_2.pkl
+2026-05-14 15:03:33,465 - allrank.utils.ltr_logging - INFO - Current:0.24445480108261108 Best:0.29649412631988525
+2026-05-14 15:03:33,481 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model.pkl
+2026-05-14 16:24:13,176 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=0 ===
+2026-05-14 16:24:13,177 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0
+2026-05-14 16:24:13,179 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 16:24:13,207 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 810,497 (Shared: 810,368, Specific: 129)
+2026-05-14 16:24:13,209 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 16:25:04,222 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_0.pkl
+2026-05-14 16:25:04,223 - allrank.utils.ltr_logging - INFO - Current:0.29649412631988525 Best:0.0
+2026-05-14 16:25:04,223 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 16:26:09,776 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model_epoch_1.pkl
+2026-05-14 16:26:09,776 - allrank.utils.ltr_logging - INFO - Current:0.27224671840667725 Best:0.29649412631988525
+2026-05-14 16:26:09,791 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\0\model.pkl

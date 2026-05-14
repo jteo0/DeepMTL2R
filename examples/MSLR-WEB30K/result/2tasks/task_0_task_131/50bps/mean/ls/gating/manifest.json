@@ -1,0 +1,19 @@
+{
+  "experiment": {
+    "name": "Dynamic Feature Gating",
+    "config": "C:\\Users\\maule\\Documents\\Repositories\\TP-TBI\\DeepMTL2R\\examples\\MSLR-WEB30K\\configs\\config_gating.json",
+    "mrl_nesting_dims": null,
+    "task_indices": [
+      0,
+      131
+    ]
+  },
+  "results_summary": {
+    "best_weight_index": 1,
+    "best_ndcg10": -1.0
+  },
+  "checkpoints": {
+    "weight_0": "outputs\\results\\2tasks\\task_0_task_131\\50bps\\mean\\ls\\gating\\0\\model.pkl",
+    "weight_1": "outputs\\results\\2tasks\\task_0_task_131\\50bps\\mean\\ls\\gating\\1\\model.pkl"
+  }
+}

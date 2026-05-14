@@ -1,0 +1,5 @@
+=== Baseline Metrics (baseline) ===
+Checkpoint: checkpoints\deepmtl2r\deepmtl2r.pkl
+
+Task 0: {'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.17380562), 'ndcg_10': np.float32(0.25212073), 'ndcg_20': np.float32(0.26121533), 'ndcg_30': np.float32(0.29200116)}
+Task 131: {'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}

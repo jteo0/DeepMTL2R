@@ -1,0 +1,69 @@
+=== Matryoshka Feature Projection | MRL=True | Gating=False ===
+MRL Nesting Dims: [32, 64, 128, 256]
+MRL Relative Importance: Uniform (1.0)
+n_features: 132
+
+Total Trainable Parameters (Δp): 2,143,460
+  ├─ Shared Parameters: 2,142,976
+  └─ Task-Specific: 484
+
+epoch:0	task:0	Train Loss:0.05478990823030472	Train Metrics:{'ndcg_1': np.float32(0.20952381), 'ndcg_5': np.float32(0.24721287), 'ndcg_10': np.float32(0.24383175), 'ndcg_20': np.float32(0.28498742), 'ndcg_30': np.float32(0.3299519)}	
+epoch:0	task:131	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.0), 'ndcg_5': np.float32(0.0), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:0	task:0	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.24007404), 'ndcg_10': np.float32(0.32540312), 'ndcg_20': np.float32(0.331633), 'ndcg_30': np.float32(0.3705111)}	
+epoch:0	task:131	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:1	task:0	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.20952381), 'ndcg_5': np.float32(0.24721289), 'ndcg_10': np.float32(0.24383175), 'ndcg_20': np.float32(0.28498742), 'ndcg_30': np.float32(0.3299519)}	
+epoch:1	task:131	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.0), 'ndcg_5': np.float32(0.0), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:1	task:0	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.24741632), 'ndcg_10': np.float32(0.3213477), 'ndcg_20': np.float32(0.32831034), 'ndcg_30': np.float32(0.3561525)}	
+epoch:1	task:131	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+
+=== Effective Dimensionality Efficiency (task 0) ===
+  dim=32:
+    ndcg_1: 0.19285714626312256
+    ndcg_5: 0.22677135467529297
+    ndcg_10: 0.2812793254852295
+    ndcg_20: 0.28238263726234436
+    ndcg_30: 0.3176563084125519
+  dim=64:
+    ndcg_1: 0.19285714626312256
+    ndcg_5: 0.22677135467529297
+    ndcg_10: 0.2812793254852295
+    ndcg_20: 0.28238263726234436
+    ndcg_30: 0.3176563084125519
+  dim=128:
+    ndcg_1: 0.19285714626312256
+    ndcg_5: 0.22677135467529297
+    ndcg_10: 0.2812793254852295
+    ndcg_20: 0.28238263726234436
+    ndcg_30: 0.3176563084125519
+  dim=256:
+    ndcg_1: 0.19285714626312256
+    ndcg_5: 0.22677135467529297
+    ndcg_10: 0.2812793254852295
+    ndcg_20: 0.28238263726234436
+    ndcg_30: 0.3176563084125519
+
+=== Effective Dimensionality Efficiency (task 131) ===
+  dim=32:
+    ndcg_1: 9.023892744153272e-13
+    ndcg_5: 7.6291044024401344e-06
+    ndcg_10: nan
+    ndcg_20: nan
+    ndcg_30: nan
+  dim=64:
+    ndcg_1: 9.023892744153272e-13
+    ndcg_5: 7.6291044024401344e-06
+    ndcg_10: nan
+    ndcg_20: nan
+    ndcg_30: nan
+  dim=128:
+    ndcg_1: 9.023892744153272e-13
+    ndcg_5: 7.6291044024401344e-06
+    ndcg_10: nan
+    ndcg_20: nan
+    ndcg_30: nan
+  dim=256:
+    ndcg_1: 9.023892744153272e-13
+    ndcg_5: 7.6291044024401344e-06
+    ndcg_10: nan
+    ndcg_20: nan
+    ndcg_30: nan

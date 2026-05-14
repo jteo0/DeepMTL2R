@@ -1,0 +1,20 @@
+=== Optimizer Comparison: SGD_Momentum on matryoshka ===
+Optimizer: SGD_Momentum
+Optimizer Args: {'lr': 0.001, 'momentum': 0.9, 'weight_decay': 0.0001}
+Baseline NDCG@10: 0.298355
+Fine-tune Epochs: 2
+Task Indices: [0, 131]
+
+epoch:0	lr:1.00e-03	task:0	Val Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.2021364), 'ndcg_10': np.float32(0.2775295), 'ndcg_20': np.float32(0.27840644), 'ndcg_30': np.float32(0.31762066)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+epoch:1	lr:1.00e-03	task:0	Val Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.20877367), 'ndcg_10': np.float32(0.28427824), 'ndcg_20': np.float32(0.2929387), 'ndcg_30': np.float32(0.3277776)}	Val Loss:nan	task:131	Val Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	Val Loss:nan	
+
+==================================================
+SUMMARY: SGD_Momentum on matryoshka
+==================================================
+Baseline NDCG@10:       0.298355
+Peak NDCG@10:           0.298355
+Peak ΔNDCG@10:          +0.000000
+Best Epoch:             -1
+Epochs to Plateau:      2
+Final NDCG@10:          0.284278
+NDCG@10 History:        [np.float32(0.2775295), np.float32(0.28427824)]

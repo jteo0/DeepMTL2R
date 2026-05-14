@@ -1,0 +1,8 @@
+2026-05-14 16:36:56,656 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 0/1 | NDCG@10=0.321456 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:37:23,007 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 1/1 | NDCG@10=0.313288 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:38:54,232 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 0/1 | NDCG@10=0.321456 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:39:18,491 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 1/1 | NDCG@10=0.313288 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:42:15,646 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 0/1 | NDCG@10=0.321456 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:42:44,656 - allrank.utils.ltr_logging - INFO - [AdamW] Epoch 1/1 | NDCG@10=0.313288 | Best=0.321456 | LR=1.00e-04
+2026-05-14 16:43:11,861 - allrank.utils.ltr_logging - INFO - [SGD_Momentum] Epoch 0/1 | NDCG@10=0.285653 | Best=0.285653 | LR=1.00e-03
+2026-05-14 16:43:39,945 - allrank.utils.ltr_logging - INFO - [SGD_Momentum] Epoch 1/1 | NDCG@10=0.312467 | Best=0.312467 | LR=1.00e-03

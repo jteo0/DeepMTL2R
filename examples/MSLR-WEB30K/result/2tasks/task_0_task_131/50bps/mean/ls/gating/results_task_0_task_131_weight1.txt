@@ -1,0 +1,16 @@
+=== Dynamic Feature Gating | MRL=False | Gating=True ===
+Gating Type: Soft (Sigmoid)
+n_features: 132
+
+Total Trainable Parameters (Δp): 810,497
+  ├─ Shared Parameters: 810,368
+  └─ Task-Specific: 129
+
+epoch:0	task:0	Train Loss:0.013991142623126507	Train Metrics:{'ndcg_1': np.float32(0.20952381), 'ndcg_5': np.float32(0.24721289), 'ndcg_10': np.float32(0.24383175), 'ndcg_20': np.float32(0.28498742), 'ndcg_30': np.float32(0.3299519)}	
+epoch:0	task:131	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.0), 'ndcg_5': np.float32(0.0), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:0	task:0	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(0.15714286), 'ndcg_5': np.float32(0.21826082), 'ndcg_10': np.float32(0.29908067), 'ndcg_20': np.float32(0.3042572), 'ndcg_30': np.float32(0.3366618)}	
+epoch:0	task:131	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:1	task:0	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.20952381), 'ndcg_5': np.float32(0.24721289), 'ndcg_10': np.float32(0.24383175), 'ndcg_20': np.float32(0.28498742), 'ndcg_30': np.float32(0.3299519)}	
+epoch:1	task:131	Train Loss:nan	Train Metrics:{'ndcg_1': np.float32(0.0), 'ndcg_5': np.float32(0.0), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	
+epoch:1	task:0	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(0.19285715), 'ndcg_5': np.float32(0.22852892), 'ndcg_10': np.float32(0.29255244), 'ndcg_20': np.float32(0.29603598), 'ndcg_30': np.float32(0.339189)}	
+epoch:1	task:131	Valid Loss:nan	Valid Metrics:{'ndcg_1': np.float32(9.023893e-13), 'ndcg_5': np.float32(7.6291044e-06), 'ndcg_10': np.float32(nan), 'ndcg_20': np.float32(nan), 'ndcg_30': np.float32(nan)}	

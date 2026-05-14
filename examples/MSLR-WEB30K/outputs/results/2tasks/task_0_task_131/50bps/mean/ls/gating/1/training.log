@@ -1,0 +1,25 @@
+2026-05-14 15:03:33,497 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=1 ===
+2026-05-14 15:03:33,498 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1
+2026-05-14 15:03:33,502 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 15:03:33,540 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 828,053 (Shared: 827,924, Specific: 129)
+2026-05-14 15:03:33,546 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 15:04:20,576 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model_epoch_0.pkl
+2026-05-14 15:04:20,577 - allrank.utils.ltr_logging - INFO - Current:0.33616968989372253 Best:0.0
+2026-05-14 15:04:20,577 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 15:05:06,998 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model_epoch_1.pkl
+2026-05-14 15:05:06,998 - allrank.utils.ltr_logging - INFO - Current:0.27754390239715576 Best:0.33616968989372253
+2026-05-14 15:05:06,999 - allrank.utils.ltr_logging - INFO - Epoch: 2, Current learning rate: 0.001
+2026-05-14 15:05:53,405 - allrank.utils.ltr_logging - INFO - Epoch 2 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model_epoch_2.pkl
+2026-05-14 15:05:53,405 - allrank.utils.ltr_logging - INFO - Current:0.3333785831928253 Best:0.33616968989372253
+2026-05-14 15:05:53,419 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model.pkl
+2026-05-14 16:26:09,811 - allrank.utils.ltr_logging - INFO - === Dynamic Feature Gating | weight_index=1 ===
+2026-05-14 16:26:09,812 - allrank.utils.ltr_logging - INFO - Output dir: outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1
+2026-05-14 16:26:09,815 - allrank.utils.ltr_logging - INFO - Building model on device: cpu
+2026-05-14 16:26:09,854 - allrank.utils.ltr_logging - INFO - Total Trainable Parameters: 810,497 (Shared: 810,368, Specific: 129)
+2026-05-14 16:26:09,867 - allrank.utils.ltr_logging - INFO - Epoch: 0, Current learning rate: 0.001
+2026-05-14 16:27:15,796 - allrank.utils.ltr_logging - INFO - Epoch 0 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model_epoch_0.pkl
+2026-05-14 16:27:15,797 - allrank.utils.ltr_logging - INFO - Current:0.29908066987991333 Best:0.0
+2026-05-14 16:27:15,797 - allrank.utils.ltr_logging - INFO - Epoch: 1, Current learning rate: 0.001
+2026-05-14 16:28:06,041 - allrank.utils.ltr_logging - INFO - Epoch 1 | Model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model_epoch_1.pkl
+2026-05-14 16:28:06,041 - allrank.utils.ltr_logging - INFO - Current:0.2925524413585663 Best:0.29908066987991333
+2026-05-14 16:28:06,052 - allrank.utils.ltr_logging - INFO - Final model saved to outputs\results\2tasks\task_0_task_131\50bps\mean\ls\gating\1\model.pkl
