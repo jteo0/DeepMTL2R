@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import gcsfs
 from attr import attrib, attrs
-from pkg_resources import Requirement, resource_filename
+import importlib.resources
 
 from allrank.utils.command_executor import execute_command
 from allrank.utils.ltr_logging import get_logger
@@ -32,8 +32,8 @@ class PathsContainer:
         tensorboard_output_path = os.path.join(base_output_path, "tb_evals", "single", run_id)
         if not os.path.exists(config_path):
             print("config not exists at {}, extracting config file path from package {}".format(config_path, package_name))
-            config_path = resource_filename(Requirement.parse(
-                package_name), os.path.join(package_name, config_path))
+            with importlib.resources.path(package_name, config_path) as p:
+                config_path = str(p)
         print("will read config from {}".format(config_path))
         return cls(local_base_output_path, base_output_path, output_dir, tensorboard_output_path, config_path)
 

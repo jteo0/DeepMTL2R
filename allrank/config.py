@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 from typing import Dict, List, Optional
 
-from attr import attrib, attrs
+from attr import attrib, attrs, Factory
 
 
 @attrs
@@ -20,6 +20,7 @@ class FCConfig:
     input_norm = attrib(type=bool)
     activation = attrib(type=str)
     dropout = attrib(type=float)
+    use_gating = attrib(type=bool, default=False)  # Feature Gating: enable DynamicFeatureGate
 
 
 @attrs
@@ -33,6 +34,8 @@ class ModelConfig:
     fc_model = attrib(type=FCConfig)
     transformer = attrib(type=TransformerConfig)
     post_model = attrib(type=PostModelConfig)
+    use_mrl = attrib(type=bool, default=False)  # Matryoshka: enable Matryoshka output layer
+    mrl_nesting_dims = attrib(type=Optional[List[int]], default=None)  # Matryoshka: nesting dims
 
 
 @attrs

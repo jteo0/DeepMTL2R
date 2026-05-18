@@ -1,5 +1,6 @@
 
 import os
+import tempfile
 from typing import Tuple
 
 import numpy as np
@@ -15,6 +16,64 @@ from allrank.utils.ltr_logging import get_logger
 logger = get_logger()
 PADDED_Y_VALUE = -1
 PADDED_INDEX_VALUE = -1
+
+
+def load_svmlight_file_limited(input_file, max_rows=None, query_id=True):
+    """
+    Load LibSVM file with optional row limit for faster debugging.
+    
+    :param input_file: file path or file object
+    :param max_rows: maximum rows to read (None = all rows)
+    :param query_id: whether to read query_id column
+    :return: (X, y, query_ids) tuple
+    """
+    if max_rows is None:
+        # Load all rows using sklearn
+        return load_svmlight_file(input_file, query_id=query_id)
+    
+    # Determine if input_file is a path or file object
+    is_path = isinstance(input_file, str)
+    
+    if is_path:
+        # Open file in binary mode
+        f = open(input_file, 'rb')
+    else:
+        # It's a file-like object, seek to beginning
+        input_file.seek(0)
+        f = input_file
+    
+    try:
+        # Create temporary file with limited rows (binary mode)
+        with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.txt') as tmp:
+            row_count = 0
+            for line in f:
+                if row_count >= max_rows:
+                    break
+                # Ensure line is bytes
+                if isinstance(line, str):
+                    line = line.encode('utf-8')
+                tmp.write(line)
+                row_count += 1
+            tmp_path = tmp.name
+        
+        if row_count == 0:
+            # No rows read, return empty
+            if query_id:
+                return np.zeros((0, 0)), np.zeros(0), np.zeros(0)
+            else:
+                return np.zeros((0, 0)), np.zeros(0)
+        
+        logger.info(f"Limited file reading: read {row_count} rows out of requested {max_rows}")
+        
+        # Load from temporary file
+        result = load_svmlight_file(tmp_path, query_id=query_id)
+        
+        # Clean up
+        os.unlink(tmp_path)
+        return result
+    finally:
+        if is_path:
+            f.close()
 
 
 class ToTensor(object):
@@ -121,16 +180,18 @@ class LibSVMDataset(Dataset):
         self.transform = transform
 
     @classmethod
-    def from_svm_file(cls, svm_file_path, transform=None):
+    def from_svm_file(cls, svm_file_path, transform=None, max_rows=None):
         """
         Instantiate a LibSVMDataset from a LibSVM file path.
         :param svm_file_path: LibSVM file path
         :param transform: a callable defining an optional transformation called on the dataset
+        :param max_rows: maximum number of rows to load (None means load all)
         :return: LibSVMDataset instantiated from a given file and with an optional transformation defined
         """
-        x, y, query_ids = load_svmlight_file(svm_file_path, query_id=True)
+        x, y, query_ids = load_svmlight_file_limited(svm_file_path, max_rows=max_rows, query_id=True)
         logger.info("loaded dataset from {} and got x shape {}, y shape {} and query_ids shape {}".format(
             svm_file_path, x.shape, y.shape, query_ids.shape))
+        
         return cls(x, y, query_ids, transform)
 
     def __len__(self):
@@ -166,19 +227,20 @@ class LibSVMDataset(Dataset):
         return [batch_dim, document_dim, features_dim]
 
 
-def load_libsvm_role(input_path: str, role: str) -> LibSVMDataset:
+def load_libsvm_role(input_path: str, role: str, max_rows: int = None) -> LibSVMDataset:
     """
     Helper function loading a LibSVMDataset of a specific role.
 
     The file can be located either in the local filesystem or in GCS.
     :param input_path: LibSVM file directory
     :param role: dataset role (file name without an extension)
+    :param max_rows: maximum number of rows to load (None means load all)
     :return: LibSVMDataset from file {input_path}/{role}.txt
     """
     path = os.path.join(input_path, "{}.txt".format(role))
     logger.info("will load {} data from {}".format(role, path))
     with open_local_or_gs(path, "rb") as input_stream:
-        ds = LibSVMDataset.from_svm_file(input_stream)
+        ds = LibSVMDataset.from_svm_file(input_stream, max_rows=max_rows)
     logger.info("{} DS shape: {}".format(role, ds.shape))
     return ds
 
@@ -195,32 +257,34 @@ def fix_length_to_longest_slate(ds: LibSVMDataset) -> Compose:
     return transforms.Compose([FixLength(int(ds.longest_query_length)), ToTensor()])
 
 
-def load_libsvm_dataset(input_path: str, slate_length: int, validation_ds_role: str) \
+def load_libsvm_dataset(input_path: str, slate_length: int, validation_ds_role: str, max_rows: int = None) \
         -> Tuple[LibSVMDataset, LibSVMDataset]:
     """
     Helper function loading a train LibSVMDataset and a specified validation LibSVMDataset.
     :param input_path: directory containing the LibSVM files
     :param slate_length: target slate length of the training dataset
     :param validation_ds_role: dataset role used for valdation (file name without an extension)
+    :param max_rows: maximum number of rows to load (None means load all)
     :return: tuple of LibSVMDatasets containing train and validation datasets,
         where train slates are padded to slate_length and validation slates to val_ds.longest_query_length
     """
-    train_ds = load_libsvm_dataset_role("train", input_path, slate_length)
+    train_ds = load_libsvm_dataset_role("train", input_path, slate_length, max_rows=max_rows)
 
-    val_ds = load_libsvm_dataset_role(validation_ds_role, input_path, slate_length)
+    val_ds = load_libsvm_dataset_role(validation_ds_role, input_path, slate_length, max_rows=max_rows)
 
     return train_ds, val_ds
 
 
-def load_libsvm_dataset_role(role: str, input_path: str, slate_length: int) -> LibSVMDataset:
+def load_libsvm_dataset_role(role: str, input_path: str, slate_length: int, max_rows: int = None) -> LibSVMDataset:
     """
     Helper function loading a single role LibSVMDataset
     :param role: the role of the dataset - specifies file name and padding behaviour
     :param input_path: directory containing the LibSVM files
     :param slate_length: target slate length of the training dataset
+    :param max_rows: maximum number of rows to load (None means load all)
     :return: loaded LibSVMDataset
     """
-    ds = load_libsvm_role(input_path, role)
+    ds = load_libsvm_role(input_path, role, max_rows=max_rows)
     if role == "train":
         ds.transform = transforms.Compose([FixLength(slate_length), ToTensor()])
     else:

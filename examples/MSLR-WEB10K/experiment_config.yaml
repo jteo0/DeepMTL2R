@@ -1,0 +1,108 @@
+# ============================================================================
+# DeepMTL2R Experiments: Universal Configuration
+# ============================================================================
+# This file centralizes all shared configuration across Phase 1, 2, and 3 experiments.
+# Reference this file from: run_extension.py, run_baseline.py, run_optimizers.py, 
+#                          run_loss_weighting.py, run_gradient.py
+# Last updated: 2026-05-14
+
+# ── DATASET & TASK CONFIGURATION ──────────────────────────────────────
+dataset:
+  name: "50bps"                         # Dataset variant (50bps, full, etc.)
+  base_path: "../../datasets/MSLR-WEB10K" # Base path for MSLR dataset
+  folds: [1, 2]                         # Folds to use for cross-validation
+  reduction_method: "mean"              # Loss reduction: "mean" | "sum"
+  label_indices: [131, 132, 133, 135]   # Columns that are labels, not features
+
+tasks:
+  indices: "0,131"                      # Task indices: main (0), auxiliary (131)
+  weights: "0,10"                       # Min & max weight index for exploration
+                                        # range(0, 10) → 10 weight combinations
+
+# ── DEBUG CONFIGURATION ───────────────────────────────────────────────
+experiment:
+  debug: True                            
+  debug_ratio: 0.000001                      # Debug sampling ratio (0.01 = 1%) if True
+                                         # If False: load 100% of data for full training
+
+# ── MODEL CONFIGURATION ───────────────────────────────────────────────
+model:
+  mrl_nesting_dims: [32, 64, 128, 256]  # Matryoshka nesting dimensions
+                                         # IMPORTANT: max(dims) must match config JSON fc_model.sizes[0]
+  moo_method: "ls"                       # Multi-Objective Optimization method
+                                         # Options: "ls" (default), "uw", "dwa", "mgda", "pcgrad", "ec", "stl"
+
+# ── TRAINING CONFIGURATION (Phase 1-2) ────────────────────────────────
+training:
+  epochs: null                           # Set by individual experiments (e.g., 100 for primary)
+  batch_size: null                       # Set by config JSON
+  patience: 15                           # Early stopping patience
+
+# ── FINE-TUNING CONFIGURATION (Phase 3) ───────────────────────────────
+finetuning:
+  epochs: 15                             # Late-stage fine-tuning epochs
+  patience: 15                           # Early stopping patience for fine-tuning
+  plateau_threshold: 1.0e-4              # Plateau detection: min improvement threshold
+  plateau_window: 3                      # Plateau detection: stagnation window (epochs)
+
+# ── GRADIENT DYNAMICS CONFIGURATION (Phase 3 Priority 3) ──────────────
+gradient:
+  sparsity_threshold: 1.0e-6             # Gradient sparsity: threshold for "near-zero"
+
+# ── OUTPUT CONFIGURATION ──────────────────────────────────────────────
+output:
+  base_dir: "outputs"                    # Base directory for all outputs
+  result_dir: "result"                   # Base directory for results & metrics files
+  checkpoint_dir: "checkpoints"          # Central directory for trained model checkpoints
+
+# ── PHASE-SPECIFIC OPTIMIZER CONFIGS (Phase 3 Priority 1) ─────────────
+optimizers:
+  AdamW:
+    class: "AdamW"
+    args:
+      lr: 1.0e-4
+      weight_decay: 1.0e-2
+    is_pytorch: true
+
+  SGD_Momentum:
+    class: "SGD"
+    args:
+      lr: 1.0e-3
+      momentum: 0.9
+      weight_decay: 1.0e-4
+    is_pytorch: true
+
+# ── PHASE-SPECIFIC LOSS WEIGHTING CONFIGS (Phase 3 Priority 2) ────────
+loss_weighting:
+  Uniform:
+    moo_method: "ls"
+    description: "Linear Scalarization with equal task weights"
+
+  Uncertainty:
+    moo_method: "uw"
+    description: "Uncertainty Weighting (Kendall et al., 2018)"
+
+  DWA:
+    moo_method: "dwa"
+    description: "Dynamic Weight Averaging (Liu et al., 2019)"
+
+# ── PHASE-SPECIFIC LR SCHEDULER CONFIGS (Phase 3 Priority 3) ─────────
+schedulers:
+  CosineAnnealing:
+    class: "CosineAnnealingLR"
+    args:
+      T_max: 15
+      eta_min: 1.0e-6
+    needs_steps_per_epoch: false
+
+  OneCycleLR:
+    class: "OneCycleLR"
+    args:
+      max_lr: 5.0e-4
+      epochs: 15
+    needs_steps_per_epoch: true
+
+# ── PATHS TO CONFIG JSON FILES ────────────────────────────────────────
+configs:
+  matryoshka_config: "configs/config_matryoshka.json"
+  gating_config: "configs/config_gating.json"

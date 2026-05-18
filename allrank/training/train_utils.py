@@ -8,26 +8,58 @@ from torch.autograd import Variable
 import allrank.models.metrics as metrics_module
 from allrank.data.dataset_loading import PADDED_Y_VALUE
 from allrank.models.model_utils import get_num_params, log_num_params, get_model_parameters
+from allrank.models.losses.matryoshka_loss import MatryoshkaRankingLoss
 from allrank.training.early_stop import EarlyStop
 from allrank.utils.ltr_logging import get_logger
 from allrank.utils.tensorboard_utils import TensorboardSummaryWriter
-# from allrank.min_norm_solvers import MinNormSolver, gradient_normalizers
 from itertools import zip_longest
 from allrank.methods.weight_methods import WeightMethods
+from tqdm import tqdm
 
 logger = get_logger()
 
-def loss_batch(model, loss_func, xb, yb, indices):
-    """Calculate loss for a single batch."""
+
+def _is_matryoshka_output(output) -> bool:
+    """Check whether model output is a Matryoshka tuple (Matryoshka) or a plain tensor (baseline/Feature Gating)."""
+    return isinstance(output, (tuple, list))
+
+
+def loss_batch(model, loss_func, xb, yb, indices, use_mrl: bool = False):
+    """
+    Calculate loss for a single batch.
+
+    For Matryoshka (Matryoshka): model returns a tuple of score tensors (one per nesting dim).
+    The loss_func is expected to be the base ranking loss; MatryoshkaRankingLoss wraps it.
+
+    For baseline / Feature Gating: model returns a plain tensor, loss computed directly.
+
+    :param model: LTRModel instance.
+    :param loss_func: base ranking loss callable with signature f(y_pred, y_true).
+    :param xb: input features [batch_size, slate_length, n_features].
+    :param yb: ground truth labels [batch_size, slate_length].
+    :param indices: positional indices [batch_size, slate_length].
+    :param use_mrl: if True, wrap loss_func in MatryoshkaRankingLoss.
+    :return: scalar loss tensor.
+    """
     xb = xb.detach().requires_grad_(True)
     yb = yb.detach().requires_grad_(True)
     mask = (yb == PADDED_Y_VALUE)
-    return loss_func(model(xb, mask, indices), yb)
+    output = model(xb, mask, indices)
+
+    if use_mrl and _is_matryoshka_output(output):
+        # Matryoshka: wrap loss with MatryoshkaRankingLoss (uniform weights)
+        mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
+        return mrl_loss(output, yb)
+    else:
+        # Baseline or Feature Gating: standard single-output loss
+        return loss_func(output, yb)
+
 
 def metric_on_batch(metric, model, xb, yb, indices):
-    """Calculate metric for a single batch."""
+    """Calculate a ranking metric for a single batch."""
     mask = (yb == PADDED_Y_VALUE)
     return metric(model.score(xb, mask, indices), yb)
+
 
 def metric_on_epoch(metric, model, dl_single, dev):
     metric_values = torch.mean(
@@ -38,6 +70,7 @@ def metric_on_epoch(metric, model, dl_single, dev):
     ).cpu().numpy()
     return metric_values
 
+
 def compute_metrics(metrics, model, dl_single, dev):
     metric_values_dict = {}
     for metric_name, ats in metrics.items():
@@ -47,6 +80,7 @@ def compute_metrics(metrics, model, dl_single, dev):
         metrics_names = ["{metric_name}_{at}".format(metric_name=metric_name, at=at) for at in ats]
         metric_values_dict.update(dict(zip(metrics_names, metrics_values)))
     return metric_values_dict
+
 
 def epoch_summary(epoch, train_loss, val_loss, train_metrics, val_metrics):
     summary = "Epoch : {epoch} Train loss: {train_loss} Val loss: {val_loss}".format(
@@ -59,87 +93,192 @@ def epoch_summary(epoch, train_loss, val_loss, train_metrics, val_metrics):
             metric_name=metric_name, metric_value=metric_value)
     return summary
 
+
 def get_current_lr(optimizer):
     for param_group in optimizer.param_groups:
         return param_group["lr"]
-    
+
+
 def log_metrics(epoch, phase, metrics_dict, loss_values, batch_sizes, task_idx, results_filename):
-        """Helper function to log metrics for each task to a file
-        
-        Args:
-            epoch (int): Current epoch
-            phase (str): Training phase (Train/Valid)
-            metrics_dict (dict): Dictionary of metrics
-            loss_values (list): List of loss values
-            batch_sizes (list): List of batch sizes
-            task_idx (int): Task index
-        """
+    """Helper function to log per-task metrics and loss to a results file."""
+    with open(results_filename, "a") as file:
+        loss_result = np.sum([a * b for a, b in zip(loss_values, batch_sizes)]) / np.sum(batch_sizes)
+        file.write(f"epoch:{epoch}\ttask:{task_idx}\t{phase} Loss:{loss_result}\t")
+        if metrics_dict:
+            file.write(f"{phase} Metrics:{metrics_dict}\t")
+        file.write("\n")
+
+
+def log_gating_sparsity(epoch, model, results_filename, threshold: float = 0.1):
+    """
+    Log the gating sparsity ratio for Dynamic Feature Gating.
+    Writes the fraction of input features suppressed by the gate.
+
+    :param epoch: current epoch number.
+    :param model: LTRModel with DynamicFeatureGate inside FCModel.
+    :param results_filename: path to log file.
+    :param threshold: gate value threshold below which a feature is considered suppressed.
+    """
+    base_model = model.module if hasattr(model, 'module') else model
+    input_layer = base_model.input_layer
+
+    if hasattr(input_layer, 'gating_layer') and input_layer.gating_layer is not None:
+        sparsity = input_layer.gating_layer.get_sparsity_ratio(threshold=threshold)
         with open(results_filename, "a") as file:
-            loss_result = np.sum([a*b for a, b in zip(loss_values, batch_sizes)]) / np.sum(batch_sizes)
-            file.write(f"epoch:{epoch}\ttask:{task_idx}\t{phase} Loss:{loss_result}\t")
-            if metrics_dict:
-                file.write(f"{phase} Metrics:{metrics_dict}\t")
-            file.write("\n")
+            file.write(f"epoch:{epoch}\tGating Sparsity Ratio (threshold={threshold}): {sparsity:.4f}\n")
+        logger.info(f"Epoch {epoch} | Gating Sparsity Ratio: {sparsity:.4f}")
+
+
+def compute_mrl_dimensionality_efficiency(model, dl_single, dev, metrics, mrl_nesting_dims):
+    """
+    Compute Effective Dimensionality Efficiency for Matryoshka Feature Projection.
+    Evaluates NDCG at each nesting dimension level by temporarily swapping
+    the evaluation head to the appropriate nesting head.
+
+    :param model: LTRModel with MatryoshkaOutputLayer.
+    :param dl_single: dataloader yielding (xb, yb, indices).
+    :param dev: torch device.
+    :param metrics: dict of metric names and at-values from config.
+    :param mrl_nesting_dims: list of nesting dimensions, e.g. [32, 64, 128, 256].
+    :return: dict mapping nesting_dim -> metrics_dict.
+    """
+    base_model = model.module if hasattr(model, 'module') else model
+    output_layer = base_model.output_layer
+
+    if not hasattr(output_layer, 'nesting_dims'):
+        return {}
+
+    efficiency_results = {}
+    original_score = output_layer.score  # save original
+
+    for i, dim in enumerate(output_layer.nesting_dims):
+        # Temporarily override score to use head i
+        head = getattr(output_layer, f"nesting_head_{i}")
+
+        def make_score_fn(h, d, act):
+            def score_fn(x):
+                return act(h(x[:, :, :d])).squeeze(dim=-1)
+            return score_fn
+
+        output_layer.score = make_score_fn(head, dim, output_layer.activation)
+        metrics_dict = compute_metrics(metrics, base_model, dl_single, dev)
+        efficiency_results[dim] = metrics_dict
+
+    # Restore original score function
+    output_layer.score = original_score
+    return efficiency_results
+
+
+def compute_noise_robustness(model, dl_single, dev, metrics, label_indices, noise_fraction=0.2, noise_std=1.0):
+    """
+    Compute robustness to noisy features by injecting Gaussian noise into a fraction of features
+    and measuring the drop in NDCG.
+    
+    :param model: LTRModel instance.
+    :param dl_single: dataloader yielding (xb, yb, indices).
+    :param dev: torch device.
+    :param metrics: dict of metric names and at-values from config.
+    :param label_indices: indices of label columns to exclude from feature noise.
+    :param noise_fraction: fraction of features to inject noise into.
+    :param noise_std: standard deviation of the Gaussian noise.
+    :return: dict of metric drops (original - noisy).
+    """
+    # First, get baseline metrics on clean data
+    baseline_metrics = compute_metrics(metrics, model, dl_single, dev)
+    
+    # Create a noisy dataloader
+    noisy_dl = []
+    for xb, yb, indices in dl_single:
+        noisy_xb = xb.clone()
+        n_features = xb.shape[-1]
+        
+        # Determine features to corrupt (excluding labels)
+        all_feats = list(range(n_features))
+        valid_feats = [f for f in all_feats if f not in label_indices]
+        
+        num_noisy_feats = int(len(valid_feats) * noise_fraction)
+        if num_noisy_feats > 0:
+            feats_to_corrupt = np.random.choice(valid_feats, num_noisy_feats, replace=False)
+            noise = torch.randn(noisy_xb[:, :, feats_to_corrupt].shape) * noise_std
+            noisy_xb[:, :, feats_to_corrupt] += noise.to(noisy_xb.device)
+            
+        noisy_dl.append((noisy_xb, yb, indices))
+        
+    # Get metrics on noisy data
+    noisy_metrics = compute_metrics(metrics, model, noisy_dl, dev)
+    
+    # Calculate robustness (drop in performance)
+    robustness_results = {}
+    for k in baseline_metrics:
+        # We record both the absolute drop and relative drop
+        drop = baseline_metrics[k] - noisy_metrics[k]
+        rel_drop = (drop / baseline_metrics[k]) * 100 if baseline_metrics[k] > 0 else 0
+        robustness_results[f"{k}_drop"] = drop
+        robustness_results[f"{k}_rel_drop_pct"] = rel_drop
+        
+    return robustness_results
+
 
 def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
         results_filename, model, loss_func,
-        task_weights, optimizer, scheduler, 
-        train_dataloader, val_dataloader, config, 
+        task_weights, optimizer, scheduler,
+        train_dataloader, val_dataloader, config,
         gradient_clipping_norm, early_stopping_patience,
-        device, output_dir, tensorboard_output_path, 
-        epsilon=None, compute_delta_m=False, stl_delta_m=None):
-    """Main training loop for multi-task learning with ranking tasks.
+        device, output_dir, tensorboard_output_path,
+        epsilon=None, compute_delta_m=False, stl_delta_m=None,
+        use_mrl: bool = False, use_gating: bool = False,
+        mrl_nesting_dims=None):
+    """
+    Main training loop for multi-task learning with ranking tasks.
 
-    Args:
-        moo_method (str): Multi-objective optimization method to use
-        main_task_index (int): Index of the main task
-        task_indices (list): Indices of tasks to train
-        label_indices (list): Indices representing label columns
-        results_filename (str): Path to save results
-        task_weights (list): Initial weights for different tasks
-        epsilon (list, optional): Epsilon values for EC method. Defaults to None.
-        compute_delta_m (bool, optional): Whether to compute delta_m metric. Defaults to False.
-        stl_delta_m (dict, optional): Single-task learning delta_m values. Required if compute_delta_m is True.
-        ... (other args)
+    Extended for Matryoshka Feature Projection and Dynamic Feature Gating.
+
+    Key additions:
+    - Matryoshka loss wrapping via use_mrl flag.
+    - Gating sparsity logging via use_gating flag.
+    - Model checkpoint saving for all epochs.
+    - Dimensionality efficiency logging per nesting dim (Matryoshka, logged at end).
+
+    :param use_mrl: if True, use MatryoshkaRankingLoss (Matryoshka).
+    :param use_gating: if True, log gating sparsity each epoch (Feature Gating).
+    :param mrl_nesting_dims: nesting dimensions for Matryoshka logging (Matryoshka).
     """
     tensorboard_writer = TensorboardSummaryWriter(tensorboard_output_path)
     early_stop = EarlyStop(early_stopping_patience)
-    weight_method = WeightMethods(moo_method, 
-                                n_tasks=len(task_indices), 
-                                device=device, 
-                                task_weights=task_weights,
-                                epsilon=epsilon)
-            
+    weight_method = WeightMethods(moo_method,
+                                  n_tasks=len(task_indices),
+                                  device=device,
+                                  task_weights=task_weights,
+                                  epsilon=epsilon)
+
     for epoch in range(epochs):
         logger.info(f"Epoch: {epoch}, Current learning rate: {get_current_lr(optimizer)}")
         model.train()
-        
-        # Initialize lists to store losses for each task
-        train_loss_values = {task_idx: [] for task_idx in task_indices}
-        train_nums = []  # Store batch sizes for weighted averaging
 
-        # Process batches
-        for batch_id, batch in enumerate(train_dataloader):
+        train_loss_values = {task_idx: [] for task_idx in task_indices}
+        train_nums = []
+
+        for batch_id, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch}/{epochs} [Train]")):
             xb, yb, indices = batch
-            # Create a mask of indices to keep for xb, others are candidate labels
             all_indices = torch.arange(xb.shape[-1])
             keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
-            # Select features to keep by indexing xb with keep_indices
-            # This removes the label candidate columns from the input tensor
             modified_xb = xb[:, :, keep_indices]
-            
+
             losses = []
             for task_idx in task_indices:
                 task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                 task_yb[yb == -1] = -1
-                loss = loss_batch(model, loss_func, modified_xb.to(device), task_yb.to(device), indices.to(device))
+                loss = loss_batch(
+                    model, loss_func,
+                    modified_xb.to(device), task_yb.to(device), indices.to(device),
+                    use_mrl=use_mrl
+                )
                 losses.append(loss)
                 train_loss_values[task_idx].append(loss.item())
             train_nums.append(len(xb))
-            
+
             if optimizer:
                 optimizer.zero_grad()
-                # Apply multi-objective optimization strategy
                 loss_weighted_sum, _ = weight_method.backward(
                     losses=torch.stack(losses),
                     shared_parameters=get_model_parameters(model, 'shared_parameters'),
@@ -147,10 +286,13 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                     last_shared_parameters=get_model_parameters(model, 'last_shared_parameters'),
                     task_weights=task_weights
                 )
-                # Apply gradient clipping if specified
                 if gradient_clipping_norm:
                     clip_grad_norm_(model.parameters(), gradient_clipping_norm)
                 optimizer.step()
+
+        # --- Feature Gating: Log gating sparsity each epoch ---
+        if use_gating:
+            log_gating_sparsity(epoch, model, results_filename)
 
         # Log training metrics
         for task_idx in task_indices:
@@ -159,35 +301,37 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 all_indices = torch.arange(xb.shape[-1])
                 keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
                 modified_xb = xb[:, :, keep_indices]
-                
                 task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                 task_yb[yb == -1] = -1
                 temp_dl.append((modified_xb, task_yb, indices))
-                
+
             train_metrics = compute_metrics(config.metrics, model, temp_dl, device)
-            log_metrics(epoch, "Train", train_metrics, 
-                       train_loss_values[task_idx], train_nums, task_idx, results_filename)
+            log_metrics(epoch, "Train", train_metrics,
+                        train_loss_values[task_idx], train_nums, task_idx, results_filename)
 
         # Validation loop
         model.eval()
         with torch.no_grad():
             valid_loss_values = {task_idx: [] for task_idx in task_indices}
             valid_nums = []
-            
-            for batch in val_dataloader:
+
+            for batch in tqdm(val_dataloader, desc=f"Epoch {epoch}/{epochs} [Valid]", leave=False):
                 xb, yb, indices = batch
                 all_indices = torch.arange(xb.shape[-1])
                 keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
                 modified_xb = xb[:, :, keep_indices]
-                
+
                 for task_idx in task_indices:
                     task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                     task_yb[yb == -1] = -1
-                    loss = loss_batch(model, loss_func, modified_xb.to(device), task_yb.to(device), indices.to(device))
+                    loss = loss_batch(
+                        model, loss_func,
+                        modified_xb.to(device), task_yb.to(device), indices.to(device),
+                        use_mrl=use_mrl
+                    )
                     valid_loss_values[task_idx].append(loss.item())
                 valid_nums.append(len(xb))
 
-            # Log validation metrics
             current_result = {}
             for task_idx in task_indices:
                 temp_dl = []
@@ -195,22 +339,21 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                     all_indices = torch.arange(xb.shape[-1])
                     keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
                     modified_xb = xb[:, :, keep_indices]
-                    
                     task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                     task_yb[yb == -1] = -1
                     temp_dl.append((modified_xb, task_yb, indices))
-                    
+
                 valid_metrics = compute_metrics(config.metrics, model, temp_dl, device)
                 current_result[task_idx] = valid_metrics
-                log_metrics(epoch, "Valid", valid_metrics, 
-                          valid_loss_values[task_idx], valid_nums, task_idx, results_filename)
+                log_metrics(epoch, "Valid", valid_metrics,
+                            valid_loss_values[task_idx], valid_nums, task_idx, results_filename)
 
-            # Compute delta m if requested
             if compute_delta_m:
                 metric_name = 'get_deltam'
                 metric_func = getattr(metrics_module, metric_name)
                 delta_m = metric_func(current_result, stl_delta_m)
-        # Handle scheduling and early stopping
+
+        # --- Scheduler and early stopping ---
         current_val_metric = current_result[task_indices[0]].get(config.val_metric)
         if scheduler:
             if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
@@ -218,15 +361,57 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             else:
                 scheduler.step()
 
+        # --- Save model checkpoint for the current epoch ---
+        epoch_checkpoint_path = os.path.join(output_dir, f"model_epoch_{epoch}.pkl")
+        torch.save(model.state_dict(), epoch_checkpoint_path)
+        logger.info(
+            f"Epoch {epoch} | Model saved to {epoch_checkpoint_path}"
+        )
+
         early_stop.step(current_val_metric, epoch)
         if early_stop.stop_training(epoch):
             logger.info(
-                "early stopping at epoch {} since {} didn't improve from epoch no {}. Best value {}, current value {}".format(
-                    epoch, config.val_metric, early_stop.best_epoch, early_stop.best_value, current_val_metric
+                "early stopping at epoch {} since {} didn't improve from epoch no {}. "
+                "Best value {}, current value {}".format(
+                    epoch, config.val_metric, early_stop.best_epoch,
+                    early_stop.best_value, current_val_metric
                 ))
             break
 
-    torch.save(model.state_dict(), os.path.join(output_dir, "model.pkl"))
+    # --- Save final (last-epoch) model ---
+    final_checkpoint_path = os.path.join(output_dir, "model.pkl")
+    torch.save(model.state_dict(), final_checkpoint_path)
+    logger.info(f"Final model saved to {final_checkpoint_path}")
+
+    # --- Matryoshka: Log Effective Dimensionality Efficiency at end of training ---
+    if use_mrl and mrl_nesting_dims:
+        logger.info("Computing Effective Dimensionality Efficiency (Matryoshka)...")
+        model.eval()
+        with torch.no_grad():
+            for task_idx in task_indices:
+                temp_dl = []
+                for xb, yb, indices in val_dataloader:
+                    all_indices = torch.arange(xb.shape[-1])
+                    keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
+                    modified_xb = xb[:, :, keep_indices]
+                    task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
+                    task_yb[yb == -1] = -1
+                    temp_dl.append((modified_xb, task_yb, indices))
+
+                efficiency = compute_mrl_dimensionality_efficiency(
+                    model, temp_dl, device, config.metrics, mrl_nesting_dims
+                )
+                with open(results_filename, "a", encoding="utf-8") as f:
+                    f.write(f"\n=== Effective Dimensionality Efficiency (task {task_idx}) ===\n")
+                    for dim, dim_metrics in efficiency.items():
+                        f.write(f"  dim={dim}:\n")
+                        for metric_name, metric_val in dim_metrics.items():
+                            f.write(f"    {metric_name}: {metric_val}\n")
+                # Pretty print to logger for console readability
+                import json
+                efficiency_str = json.dumps(efficiency, indent=2, default=str)
+                logger.info(f"Task {task_idx} Dimensionality Efficiency:\n{efficiency_str}")
+
     tensorboard_writer.close_all_writers()
 
     return {
@@ -234,4 +419,4 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
         "train_metrics": train_metrics,
         "val_metrics": valid_metrics,
         "num_params": get_num_params(model)
-    } 
+    }
