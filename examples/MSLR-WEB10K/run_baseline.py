@@ -29,7 +29,9 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 import logging
-logging.getLogger().setLevel(logging.INFO) # Tambahkan ini untuk memunculkan log INFO ke console
+logging.getLogger().setLevel(logging.WARNING)
+logging.getLogger("allrank").setLevel(logging.WARNING)
+logging.getLogger("allrank.utils.ltr_logging").setLevel(logging.WARNING)
 
 import allrank.models.losses as losses
 from allrank.config import Config
@@ -90,7 +92,7 @@ def evaluate_baseline(model, val_dataloader, config, device, task_indices, loss_
 
 
 def run_training(experiment_name, task_indices, moo_method, task_weights_tensor, dataset_path, train_dl, val_dl, nf):
-    print(f"\n[DEBUG] Starting run_training: {experiment_name}, task_indices={task_indices}", flush=True)
+    print(f"\nStarting run_training: {experiment_name}, task_indices={task_indices}", flush=True)
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
@@ -102,7 +104,7 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
     config.loss.args["reduction"] = REDUCTION_METHOD
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"[DEBUG] Using device: {device}", flush=True)
+    print(f"Using device: {device}", flush=True)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
         torch.backends.cudnn.deterministic = True
@@ -223,11 +225,11 @@ def main():
     print(" Phase 1: Baseline Comparison (Single-Task vs Multi-Task) - Cross Validation")
     print("=" * 60)
 
-    print("[DEBUG] About to read user input...", flush=True)
+    print("About to read user input...", flush=True)
     task_input = input(
         "\nEnter task indices for Multi-Task (comma separated, default: 0,131): "
     ).strip()
-    print(f"[DEBUG] User input received: '{task_input}'", flush=True)
+    print(f"User input received: '{task_input}'", flush=True)
     task_indices_mt = list(map(int, task_input.split(","))) if task_input else [0, 131]
     task_indices_st = [0]  # Single task is only Relevance (task 0)
 
@@ -249,7 +251,7 @@ def main():
         if not os.path.exists(dataset_path):
             raise FileNotFoundError(f"Dataset path not found: {dataset_path}")
 
-        print(f"[DEBUG] Dataset path exists: {dataset_path}", flush=True)
+        print(f"Dataset path exists: {dataset_path}", flush=True)
         
         config = Config.from_json(CONFIG_GATING)
         
@@ -264,18 +266,18 @@ def main():
             else:
                 print(f"[DEBUG] DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset", flush=True)
         
-        print(f"[DEBUG] Loading LibSVM dataset from {dataset_path}...", flush=True)
+        print(f"Loading LibSVM dataset from {dataset_path}...", flush=True)
         train_ds, val_ds = load_libsvm_dataset(
             dataset_path, config.data.slate_length, config.data.validation_ds_role, max_rows=max_rows
         )
-        print(f"[DEBUG] Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}", flush=True)
+        print(f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}", flush=True)
 
-        print(f"[DEBUG] Creating data loaders...", flush=True)
+        print(f"Creating data loaders...", flush=True)
         nf = train_ds.shape[-1] - len(LABEL_INDICES)
         train_dl, val_dl = create_data_loaders(
             train_ds, val_ds, config.data.num_workers, config.data.batch_size
         )
-        print(f"[DEBUG] Data loaders created! nf={nf}", flush=True)
+        print(f"Data loaders created! nf={nf}", flush=True)
 
         # 1. Single Task
         res_st = run_training(f"Single-Task-Fold{fold}", task_indices_st, "ls", torch.tensor([1.0]), dataset_path, train_dl, val_dl, nf)

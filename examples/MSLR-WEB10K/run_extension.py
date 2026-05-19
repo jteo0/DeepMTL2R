@@ -438,43 +438,34 @@ def run_experiment(
     # =========================================================================
     # Save all weight combination models to central checkpoint directory
     # =========================================================================
-    
-    # Determine checkpoint subdirectory based on architecture
-    if use_mrl:
-        checkpoint_subdir = "matryoshka"
-    elif use_gating:
-        checkpoint_subdir = "feature_gating"
-    else:
-        checkpoint_subdir = "deepmtl2r"
-    
+    checkpoint_subdir = (
+        "matryoshka" if use_mrl else "feature_gating" if use_gating else "deepmtl2r"
+    )
     checkpoint_dir_full = os.path.join(CHECKPOINT_DIR, checkpoint_subdir)
     os.makedirs(checkpoint_dir_full, exist_ok=True)
-    
-    print(f"\n{'='*60}")
+
+    print(f"\n{'=' * 60}")
     print(f"Saving checkpoints to: {checkpoint_dir_full}")
-    print(f"{'='*60}")
-    
-    # Save all weight combinations
+    print(f"{'=' * 60}")
+
+    source_base_dir = os.path.join(
+        OUTPUT_DIR,
+        "results",
+        f"{num_tasks}tasks",
+        f"task_{task_id_string}",
+        DATASET_NAME,
+        REDUCTION_METHOD,
+        MOO_METHOD,
+        exp_tag,
+        fold_str,
+    )
+
     for weight_index in range(len(weight_combinations)):
-        source_model_path = os.path.join(
-            OUTPUT_DIR,
-            "results",
-            f"{num_tasks}tasks",
-            f"task_{task_id_string}",
-            DATASET_NAME,
-            REDUCTION_METHOD,
-            MOO_METHOD,
-            exp_tag,
-            fold_str,
-            str(weight_index),
-            "model.pkl",
-        )
-        
+        source_model_path = os.path.join(source_base_dir, str(weight_index), "model.pkl")
         destination_checkpoint_path = os.path.join(
-            checkpoint_dir_full, 
-            f"{checkpoint_subdir}_{fold_str}_weight{weight_index}.pkl"
+            checkpoint_dir_full, f"{checkpoint_subdir}_{fold_str}_weight{weight_index}.pkl"
         )
-        
+
         if os.path.exists(source_model_path):
             shutil.copy(source_model_path, destination_checkpoint_path)
             print(f"  ✓ weight{weight_index}: {destination_checkpoint_path}")
@@ -524,9 +515,9 @@ def main():
             if debug_ratio > 0:
                 estimated_total_rows = 30000000
                 max_rows = max(1, int(estimated_total_rows * debug_ratio))
-                print(f"[DEBUG] DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)")
+                print(f"DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)")
             else:
-                print(f"[DEBUG] DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset")
+                print(f"DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset")
         
         print(f"Loading MSLR-WEB30K dataset from {dataset_path}...")
         train_ds, val_ds = load_libsvm_dataset(
@@ -535,7 +526,7 @@ def main():
             validation_ds_role=config_tmp.data.validation_ds_role,
             max_rows=max_rows,
         )
-        print(f"[DEBUG] Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}")
+        print(f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}")
 
         # Number of features (exclude label candidate columns)
         nf = train_ds.shape[-1] - len(LABEL_INDICES)
