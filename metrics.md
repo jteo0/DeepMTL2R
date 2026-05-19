@@ -16,20 +16,19 @@ Dokumen ini merangkum metrik yang akan digunakan untuk mengukur, membandingkan, 
 * **Gating Sparsity Ratio (Gating-only):** Persentase fitur input yang diberikan bobot mendekati nol oleh mekanisme Gating. Menunjukkan tingkat efisiensi pembuangan *noise*.
 * **Total Trainable Parameters (Δp):** Membandingkan ukuran penambahan model akibat modifikasi secara *hardware-agnostic*.
 * **Robustness to Noisy Features:** Persentase penurunan skor NDCG ketika sebagian fitur sengaja diberi gangguan (*noise*). Metrik brilian untuk menguji apakah Gating secara eksplisit mampu "menutup pintu" bagi fitur buruk dibandingkan fleksibilitas alami Matryoshka.
-* **Feature Importance Rank Correlation:** Korelasi *ranking* antara fitur yang diberi bobot tinggi oleh Gating dengan fitur yang aktif dominan pada dimensi-dimensi awal Matryoshka.
 
 ---
 
 ## Fase 2: Eksperimen Akhir (Late-Stage Fine-Tuning & Dynamics)
 *Tujuan: Menganalisis ketahanan dan daya adaptasi kedua model (Matryoshka vs Gating) terhadap intervensi hyperparameter (Optimizer & Loss Weighting) di fase akhir pelatihan.*
 
-### Prioritas 1: Perbandingan Optimizer (AdamW vs Lion vs SGD+Momentum)
+### Prioritas 1: Perbandingan Optimizer (AdamW vs SGD+Momentum)
 * **Epochs to New Plateau (Convergence Speed)**
   * *Penjelasan:* Jumlah epoch tambahan yang diperlukan oleh model untuk kembali mentok (*plateau*) setelah optimizer diganti pada tahap akhir.
   * *Interpretasi Analisis:* Optimizer dengan angka epoch lebih kecil menunjukkan konvergensi yang lebih efisien. Jika Lion lebih cepat konvergen pada model Feature Gating daripada AdamW, ada kemungkinan arsitektur *sparse* lebih bersahabat dengan sifat regularisasi ketat milik Lion. Sebaliknya, Matryoshka (yang loss-nya bersarang) mungkin butuh momentum konstan (SGD+Momentum) untuk menavigasi lanskap loss-nya yang rumit.
 * **Peak NDCG Delta (ΔNDCG)**
   * *Penjelasan:* Selisih antara NDCG@10 terbaik sebelum intervensi (checkpoint awal Eksperimen Akhir) dan NDCG@10 puncak setelah intervensi optimizer.
-  * *Interpretasi Analisis:* Semakin besar nilai delta positif, semakin sukses arsitektur tersebut didorong keluar dari *local minima*. Jika Opsi C memiliki ΔNDCG jauh lebih tinggi dari Opsi A setelah di-tuning, berarti potensi maksimal Opsi C sempat tertahan oleh batasan AdamW.
+  * *Interpretasi Analisis:* Semakin besar nilai delta positif, semakin sukses arsitektur tersebut didorong keluar dari *local minima*. Jika Feature-Gating memiliki ΔNDCG jauh lebih tinggi dari Matryoshka setelah di-tuning, berarti potensi maksimal Feature-Gating sempat tertahan oleh batasan AdamW.
 
 ### Prioritas 2: Strategi Pembobotan Loss (Uniform vs DWA / Uncertainty Weighting)
 * **Task Performance Variance**

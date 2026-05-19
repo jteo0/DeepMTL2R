@@ -2,6 +2,7 @@ import os
 from functools import partial
 
 import numpy as np
+
 import torch
 from torch.nn.utils import clip_grad_norm_
 from torch.autograd import Variable
@@ -251,6 +252,10 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                                   task_weights=task_weights,
                                   epsilon=epsilon)
 
+    epoch = -1
+    train_metrics = {}
+    valid_metrics = {}
+
     for epoch in range(epochs):
         logger.info(f"Epoch: {epoch}, Current learning rate: {get_current_lr(optimizer)}")
         model.train()
@@ -384,6 +389,15 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
     logger.info(f"Final model saved to {final_checkpoint_path}")
 
     # --- Matryoshka: Log Effective Dimensionality Efficiency at end of training ---
+    special_metrics = {}
+    base_model = model.module if hasattr(model, 'module') else model
+
+    if use_gating:
+        input_layer = getattr(base_model, 'input_layer', None)
+        gating_layer = getattr(input_layer, 'gating_layer', None) if input_layer is not None else None
+        if gating_layer is not None:
+            special_metrics['gating_sparsity_ratio'] = gating_layer.get_sparsity_ratio()
+
     if use_mrl and mrl_nesting_dims:
         logger.info("Computing Effective Dimensionality Efficiency (Matryoshka)...")
         model.eval()
@@ -411,6 +425,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 import json
                 efficiency_str = json.dumps(efficiency, indent=2, default=str)
                 logger.info(f"Task {task_idx} Dimensionality Efficiency:\n{efficiency_str}")
+                special_metrics.setdefault('mrl_dimensionality_efficiency', {})[task_idx] = efficiency
 
     tensorboard_writer.close_all_writers()
 
@@ -418,5 +433,6 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
         "epochs": epoch,
         "train_metrics": train_metrics,
         "val_metrics": valid_metrics,
-        "num_params": get_num_params(model)
+        "num_params": get_num_params(model),
+        "special_metrics": special_metrics,
     }

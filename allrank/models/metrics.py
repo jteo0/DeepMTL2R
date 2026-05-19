@@ -112,6 +112,45 @@ def mrr(y_pred, y_true, ats=None, padding_indicator=PADDED_Y_VALUE):
 
     return result
 
+
+def map(y_pred, y_true, ats=None, padding_indicator=PADDED_Y_VALUE):
+    """
+    Mean Average Precision at k.
+
+    Compute MAP at ranks given by ats or at the maximum rank if ats is None.
+    Relevance is treated as binary: labels greater than 0 are relevant.
+    :param y_pred: predictions from the model, shape [batch_size, slate_length]
+    :param y_true: ground truth labels, shape [batch_size, slate_length]
+    :param ats: optional list of ranks for MAP evaluation, if None, maximum rank is used
+    :param padding_indicator: an indicator of the y_true index containing a padded item, e.g. -1
+    :return: AP values for each slate and evaluation position, shape [batch_size, len(ats)]
+    """
+    y_true = y_true.clone()
+    y_pred = y_pred.clone()
+
+    if ats is None:
+        ats = [y_true.shape[1]]
+
+    true_sorted_by_preds = __apply_mask_and_get_true_sorted_by_preds(y_pred, y_true, padding_indicator)
+
+    relevant = (true_sorted_by_preds > 0).float()
+    cumsum_relevant = torch.cumsum(relevant, dim=1)
+    ranks = torch.arange(1, relevant.shape[1] + 1, dtype=torch.float32, device=relevant.device)
+    precision_at_rank = cumsum_relevant / ranks
+    cumulative_ap = torch.cumsum(precision_at_rank * relevant, dim=1)
+
+    ats_tensor = torch.tensor(ats, dtype=torch.long, device=relevant.device) - 1
+    ap_at_k = cumulative_ap[:, ats_tensor]
+
+    num_relevant = relevant.sum(dim=1, keepdim=True)
+    denominators = torch.minimum(
+        num_relevant.expand(-1, len(ats)),
+        torch.tensor(ats, dtype=torch.float32, device=relevant.device).view(1, -1),
+    )
+    denominators = torch.clamp(denominators, min=1.0)
+
+    return ap_at_k / denominators
+
 def get_deltam(current_result, STL_deltam):
     # TODO: fill the real STL results later
     # STL_deltam = {0:{'ndcg_1': 1, 'ndcg_5': 1, 'ndcg_10': 1, 'ndcg_30': 1},

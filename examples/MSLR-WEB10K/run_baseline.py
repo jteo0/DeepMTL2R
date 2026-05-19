@@ -340,6 +340,18 @@ def main():
     print(f" Single-Task NDCG@30 (Relevance): {avg_ndcg30_st:.4f}")
     print(f" Multi-Task  NDCG@30 (Relevance): {avg_ndcg30_mt:.4f}")
     print(f" Δm% (Relative Improvement):      {delta_m:+.2f}%")
+    print(" Single-Task metrics:")
+    for metric_name in sorted(summary_st.keys()):
+        metric_stats = summary_st[metric_name]
+        print(
+            f"   {metric_name}: {metric_stats['mean']:.4f} ± {metric_stats['std']:.4f}"
+        )
+    print(" Multi-Task metrics:")
+    for metric_name in sorted(summary_mt.keys()):
+        metric_stats = summary_mt[metric_name]
+        print(
+            f"   {metric_name}: {metric_stats['mean']:.4f} ± {metric_stats['std']:.4f}"
+        )
     print("=" * 60)
 
     # Save summary (expanded)

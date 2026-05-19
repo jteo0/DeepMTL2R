@@ -52,7 +52,9 @@
     "ndcg_5",
     "ndcg_10",
     "ndcg_20",
-    "ndcg_30"
+    "ndcg_30",
+    "map",
+    "mrr"
   ],
   "loss": {
     "name": "lambdaLoss",
