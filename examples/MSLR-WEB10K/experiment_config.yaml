@@ -24,7 +24,7 @@ tasks:
 # ── DEBUG CONFIGURATION ───────────────────────────────────────────────
 experiment:
   debug: True                            
-  debug_ratio: 0.0000001                      # Debug sampling ratio (0.01 = 1%) if True
+  debug_ratio: 0.000001                      # Debug sampling ratio (0.01 = 1%) if True
                                          # If False: load 100% of data for full training
 
 # ── MODEL CONFIGURATION ───────────────────────────────────────────────
