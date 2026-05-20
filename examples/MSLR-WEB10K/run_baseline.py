@@ -53,22 +53,75 @@ from config_loader import load_config
 cfg = load_config()
 
 # Extract configuration from YAML
-DATASET_NAME = cfg.dataset.name
-try:
-    DATASET_BASE_PATH = cfg.dataset.base_path
-    FOLDS = cfg.dataset.folds
-except AttributeError:
-    # Fallback to old path variable if base_path/folds not available
-    DATASET_BASE_PATH = cfg.dataset.path.rsplit('/', 1)[0] if 'Fold' in cfg.dataset.path else cfg.dataset.path
+DATASET_NAME = getattr(cfg.dataset, 'name', '50bps')
+DATASET_BASE_PATH = getattr(cfg.dataset, 'base_path', None) or getattr(cfg.dataset, 'path', '../../datasets/MSLR-WEB10K')
+FOLDS = getattr(cfg.dataset, 'folds', None) or [1]
+
+# Ensure DATASET_BASE_PATH and FOLDS are not None
+if DATASET_BASE_PATH is None:
+    DATASET_BASE_PATH = '../../datasets/MSLR-WEB10K'
+if FOLDS is None:
     FOLDS = [1]
-REDUCTION_METHOD = cfg.dataset.reduction_method
-LABEL_INDICES = cfg.dataset.label_indices
-OUTPUT_DIR = cfg.output.base_dir
-CHECKPOINT_DIR = cfg.output.checkpoint_dir
-DEBUG = cfg.experiment.debug
+    
+REDUCTION_METHOD = getattr(cfg.dataset, 'reduction_method', 'mean')
+LABEL_INDICES = getattr(cfg.dataset, 'label_indices', [131, 132, 133, 134, 135])
+OUTPUT_DIR = getattr(cfg.output, 'base_dir', 'outputs')
+CHECKPOINT_DIR = getattr(cfg.output, 'checkpoint_dir', 'checkpoints')
+DEBUG = getattr(cfg.experiment, 'debug', False)
 
 # Config files
 CONFIG_GATING = os.path.join(os.path.dirname(__file__), "configs", "config_gating.json")
+
+
+def format_metric_value(value):
+    """Format metric value, handling NaN and inf."""
+    if isinstance(value, float):
+        if np.isnan(value) or np.isinf(value):
+            return "—"
+        return f"{value:.4f}"
+    return f"{float(value):.4f}" if value is not None else "—"
+
+
+def format_special_metrics(special_metrics_per_fold, fold_ids):
+    """Format special metrics cleanly without numpy type objects."""
+    formatted = {}
+    for fold_idx, fold_id in enumerate(fold_ids):
+        if fold_idx < len(special_metrics_per_fold):
+            special = special_metrics_per_fold[fold_idx]
+            fold_formatted = {}
+            for metric_type, task_data in special.items():
+                if isinstance(task_data, dict):
+                    fold_formatted[metric_type] = {}
+                    for task_idx, values in task_data.items():
+                        if isinstance(values, dict):
+                            fold_formatted[metric_type][task_idx] = {
+                                k: format_metric_value(v) for k, v in values.items()
+                            }
+                        else:
+                            fold_formatted[metric_type][task_idx] = format_metric_value(values)
+                else:
+                    fold_formatted[metric_type] = format_metric_value(task_data)
+            formatted[f"fold_{fold_id}"] = fold_formatted
+    return formatted
+
+
+def group_metrics_by_task(summary_dict):
+    """Group metrics by task for cleaner display."""
+    tasks = defaultdict(dict)
+    for metric_name, metric_stats in summary_dict.items():
+        # Extract task ID from metric name (e.g., "Task_0_ndcg_30" -> task "0")
+        parts = metric_name.split("_")
+        if len(parts) >= 2 and parts[0] == "Task":
+            task_id = parts[1]
+            metric_key = "_".join(parts[2:])  # e.g., "ndcg_30"
+            mean_val = metric_stats.get("mean", 0.0)
+            std_val = metric_stats.get("std", 0.0)
+            tasks[task_id][metric_key] = {
+                "mean": mean_val,
+                "std": std_val,
+                "formatted": f"{format_metric_value(mean_val)} ± {format_metric_value(std_val)}",
+            }
+    return tasks
 
 
 def evaluate_baseline(model, val_dataloader, config, device, task_indices, loss_func):
@@ -209,6 +262,7 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
         "dataset_path": dataset_path,
         "fold": fold_str,
         "per_task_metrics": results,
+        "special_metrics": fit_result.get("special_metrics", {}) if isinstance(fit_result, dict) else {},
         "num_params": int(num_params) if num_params is not None else None,
     }
     try:
@@ -225,12 +279,8 @@ def main():
     print(" Phase 1: Baseline Comparison (Single-Task vs Multi-Task) - Cross Validation")
     print("=" * 60)
 
-    print("About to read user input...", flush=True)
-    task_input = input(
-        "\nEnter task indices for Multi-Task (comma separated, default: 0,131): "
-    ).strip()
-    print(f"User input received: '{task_input}'", flush=True)
-    task_indices_mt = list(map(int, task_input.split(","))) if task_input else [0, 131]
+    # Use task indices from YAML config (0=Relevance, 132-135=Auxiliary)
+    task_indices_mt = list(map(int, cfg.tasks.indices.split(",")))
     task_indices_st = [0]  # Single task is only Relevance (task 0)
 
     # Aggregators for standard metrics across folds
@@ -240,6 +290,8 @@ def main():
     metrics_agg_mt = defaultdict(list)
     params_st = []
     params_mt = []
+    special_st = []
+    special_mt = []
 
     for fold in FOLDS:
         print(f"\n" + "=" * 60)
@@ -281,25 +333,36 @@ def main():
 
         # 1. Single Task
         res_st = run_training(f"Single-Task-Fold{fold}", task_indices_st, "ls", torch.tensor([1.0]), dataset_path, train_dl, val_dl, nf)
-        task_metrics_st = res_st.get("per_task_metrics", {}).get(0, {})
-        # collect ndcg_30 and any other configured metrics
-        ndcg30_st = task_metrics_st.get("ndcg_30", 0.0)
+        per_task_st = res_st.get("per_task_metrics", {})
+        # Collect Task 0 NDCG@30 for delta_m
+        ndcg30_st = per_task_st.get(0, {}).get("ndcg_30", 0.0)
         all_ndcg30_st.append(ndcg30_st)
-        for k, v in task_metrics_st.items():
-            metrics_agg_st[k].append(float(v))
+        
+        # Aggregate all tasks (though ST is usually just task 0)
+        for t_idx, t_metrics in per_task_st.items():
+            for k, v in t_metrics.items():
+                metrics_agg_st[f"Task_{t_idx}_{k}"].append(float(v))
+        
         params_st.append(res_st.get("num_params"))
+        special_st.append(res_st.get("special_metrics", {}))
 
         # 2. Multi Task
         num_tasks = len(task_indices_mt)
         res_mt = run_training(
             f"Multi-Task-Vanilla-Fold{fold}", task_indices_mt, "ls", [1.0 / num_tasks] * num_tasks, dataset_path, train_dl, val_dl, nf
         )
-        task_metrics_mt = res_mt.get("per_task_metrics", {}).get(0, {})
-        ndcg30_mt = task_metrics_mt.get("ndcg_30", 0.0)
+        per_task_mt = res_mt.get("per_task_metrics", {})
+        # Collect Task 0 NDCG@30 for delta_m
+        ndcg30_mt = per_task_mt.get(0, {}).get("ndcg_30", 0.0)
         all_ndcg30_mt.append(ndcg30_mt)
-        for k, v in task_metrics_mt.items():
-            metrics_agg_mt[k].append(float(v))
+        
+        # Aggregate all tasks (Main + Auxiliary)
+        for t_idx, t_metrics in per_task_mt.items():
+            for k, v in t_metrics.items():
+                metrics_agg_mt[f"Task_{t_idx}_{k}"].append(float(v))
+        
         params_mt.append(res_mt.get("num_params"))
+        special_mt.append(res_mt.get("special_metrics", {}))
 
         # Free memory at the end of each fold
         del train_ds, val_ds, train_dl, val_dl
@@ -326,6 +389,8 @@ def main():
 
     summary_st = summarize_metrics(metrics_agg_st)
     summary_mt = summarize_metrics(metrics_agg_mt)
+    avg_params_st = float(np.mean([p for p in params_st if p is not None])) if any(p is not None for p in params_st) else 0.0
+    avg_params_mt = float(np.mean([p for p in params_mt if p is not None])) if any(p is not None for p in params_mt) else 0.0
 
     # Compute Delta m%
     if avg_ndcg30_st > 0:
@@ -333,26 +398,89 @@ def main():
     else:
         delta_m = 0.0
 
-    print("\n" + "=" * 60)
-    print(" BASELINE RESULTS (CROSS-VALIDATION AVERAGE)")
-    print("=" * 60)
-    print(f" Folds Evaluated:                 {FOLDS}")
-    print(f" Single-Task NDCG@30 (Relevance): {avg_ndcg30_st:.4f}")
-    print(f" Multi-Task  NDCG@30 (Relevance): {avg_ndcg30_mt:.4f}")
-    print(f" Δm% (Relative Improvement):      {delta_m:+.2f}%")
-    print(" Single-Task metrics:")
-    for metric_name in sorted(summary_st.keys()):
-        metric_stats = summary_st[metric_name]
-        print(
-            f"   {metric_name}: {metric_stats['mean']:.4f} ± {metric_stats['std']:.4f}"
-        )
-    print(" Multi-Task metrics:")
-    for metric_name in sorted(summary_mt.keys()):
-        metric_stats = summary_mt[metric_name]
-        print(
-            f"   {metric_name}: {metric_stats['mean']:.4f} ± {metric_stats['std']:.4f}"
-        )
-    print("=" * 60)
+    # Group metrics by task
+    st_tasks = group_metrics_by_task(summary_st)
+    mt_tasks = group_metrics_by_task(summary_mt)
+    st_special = format_special_metrics(special_st, FOLDS)
+    mt_special = format_special_metrics(special_mt, FOLDS)
+
+    print("\n" + "=" * 80)
+    print("BASELINE RESULTS (CROSS-VALIDATION AVERAGE)")
+    print("=" * 80)
+    print(f"Folds Evaluated:                {FOLDS}")
+    print(f"Single-Task NDCG@30 (Relevance): {avg_ndcg30_st:.4f}")
+    print(f"Multi-Task  NDCG@30 (Relevance): {avg_ndcg30_mt:.4f}")
+    print(f"Δm% (Relative Improvement):     {delta_m:+.2f}%")
+    print(f"Single-Task Total Params:       {avg_params_st:.0f}")
+    print(f"Multi-Task  Total Params:       {avg_params_mt:.0f}")
+
+    # Display Single-Task metrics grouped by task
+    print("\n--- SINGLE-TASK METRICS ---")
+    for task_id in sorted(st_tasks.keys()):
+        task_label = " (Main)" if str(task_id) == "0" else " (Aux)"
+        print(f"  Task {task_id}{task_label}:")
+        for metric_key in sorted(st_tasks[task_id].keys()):
+            formatted_val = st_tasks[task_id][metric_key]["formatted"]
+            print(f"    {metric_key}: {formatted_val}")
+
+    # Display Multi-Task metrics grouped by task
+    print("\n--- MULTI-TASK METRICS ---")
+    global_metrics = defaultdict(list)
+    for task_id in sorted(mt_tasks.keys()):
+        task_label = " (Main)" if str(task_id) == "0" else " (Aux)"
+        print(f"  Task {task_id}{task_label}:")
+        for metric_key in sorted(mt_tasks[task_id].keys()):
+            formatted_val = mt_tasks[task_id][metric_key]["formatted"]
+            print(f"    {metric_key}: {formatted_val}")
+            
+            mean_val = mt_tasks[task_id][metric_key]["mean"]
+            if not np.isnan(mean_val):
+                global_metrics[metric_key].append(mean_val)
+                
+    print(f"\n  --- Global Averages (All Tasks) ---")
+    for metric_key in sorted(global_metrics.keys()):
+        g_avg = float(np.mean(global_metrics[metric_key]))
+        print(f"    {metric_key.upper()}: {g_avg:.4f}")
+
+    # Display special metrics if available
+    if any(special_st):
+        agg_robustness_st = {}
+        for s_metrics in special_st:
+            if "noise_robustness" in s_metrics:
+                for t_idx, rob in s_metrics["noise_robustness"].items():
+                    for r_key, r_val in rob.items():
+                        if r_key not in agg_robustness_st:
+                            agg_robustness_st[r_key] = []
+                        agg_robustness_st[r_key].append(float(r_val))
+        if len(agg_robustness_st) > 0:
+            print(f"\n--- SINGLE-TASK SPECIAL METRICS ---")
+            print(f"  Robustness to Noisy Features (Global Average Drop):")
+            for r_key in sorted(agg_robustness_st.keys()):
+                if "ndcg" in r_key or "map" in r_key:
+                    r_arr = np.array(agg_robustness_st[r_key])
+                    r_mean = float(np.mean(r_arr))
+                    r_std = float(np.std(r_arr, ddof=1)) if len(r_arr) > 1 else 0.0
+                    print(f"    {r_key}: {r_mean:.4f} ± {r_std:.4f}")
+
+    if any(special_mt):
+        agg_robustness_mt = {}
+        for s_metrics in special_mt:
+            if "noise_robustness" in s_metrics:
+                for t_idx, rob in s_metrics["noise_robustness"].items():
+                    for r_key, r_val in rob.items():
+                        if r_key not in agg_robustness_mt:
+                            agg_robustness_mt[r_key] = []
+                        agg_robustness_mt[r_key].append(float(r_val))
+        if len(agg_robustness_mt) > 0:
+            print(f"\n  Robustness to Noisy Features (Global Average Drop):")
+            for r_key in sorted(agg_robustness_mt.keys()):
+                if "ndcg" in r_key or "map" in r_key:
+                    r_arr = np.array(agg_robustness_mt[r_key])
+                    r_mean = float(np.mean(r_arr))
+                    r_std = float(np.std(r_arr, ddof=1)) if len(r_arr) > 1 else 0.0
+                    print(f"    {r_key}: {r_mean:.4f} ± {r_std:.4f}")
+
+    print("\n" + "=" * 80)
 
     # Save summary (expanded)
     os.makedirs(os.path.join(OUTPUT_DIR, "baselines"), exist_ok=True)
@@ -363,13 +491,17 @@ def main():
             "ndcg30_avg": float(avg_ndcg30_st),
             "ndcg30_folds": [float(x) for x in all_ndcg30_st],
             "params_per_fold": params_st,
+            "params_avg": avg_params_st,
             "metrics": summary_st,
+            "special_metrics_per_fold": special_st,
         },
         "multi_task": {
             "ndcg30_avg": float(avg_ndcg30_mt),
             "ndcg30_folds": [float(x) for x in all_ndcg30_mt],
             "params_per_fold": params_mt,
+            "params_avg": avg_params_mt,
             "metrics": summary_mt,
+            "special_metrics_per_fold": special_mt,
         },
     }
 

@@ -9,20 +9,22 @@
 # ── DATASET & TASK CONFIGURATION ──────────────────────────────────────
 dataset:
   name: "50bps"                         # Dataset variant (50bps, full, etc.)
-  base_path: "../../datasets/MSLR-WEB10K" # Base path for MSLR dataset
-  folds: [1, 2]                         # Folds to use for cross-validation
+  path: "../../datasets/MSLR-WEB10K"    # Path to dataset folder
   reduction_method: "mean"              # Loss reduction: "mean" | "sum"
-  label_indices: [131, 132, 133, 135]   # Columns that are labels, not features
+  # label_indices use 0-indexed ARRAY columns (libsvm 132-136 → array columns 131-135 after loading)
+  label_indices: [131, 132, 133, 134, 135] # Array columns for libsvm 132-136 (5 auxiliary)
+  folds: [1, 2]
 
 tasks:
-  indices: "0,131"                      # Task indices: main (0), auxiliary (131)
+  # task_indices use 0-indexed ARRAY columns (libsvm 132-136 → array columns 131-135 after loading)
+  indices: "0,131,132,133,134,135"           # Task 0 (main) + libsvm 132-136 (array cols 131-135)
   weights: "0,10"                       # Min & max weight index for exploration
                                         # range(0, 10) → 10 weight combinations
 
 # ── DEBUG CONFIGURATION ───────────────────────────────────────────────
 experiment:
   debug: True                            
-  debug_ratio: 0.000001                      # Debug sampling ratio (0.01 = 1%) if True
+  debug_ratio: 0.0000001                      # Debug sampling ratio (0.01 = 1%) if True
                                          # If False: load 100% of data for full training
 
 # ── MODEL CONFIGURATION ───────────────────────────────────────────────
