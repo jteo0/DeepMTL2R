@@ -22,10 +22,10 @@
     "mrl_nesting_dims": [32, 64, 128, 256]
   },
   "data": {
-    "path": "datasets/MSLR-WEB30K/Fold1_normalized",
+    "path": "datasets/MSLR-WEB10K/Fold1",
     "validation_ds_role": "vali",
     "num_workers": 1,
-    "batch_size": 64,
+    "batch_size": 32,
     "slate_length": 240
   },
   "optimizer": {
@@ -53,8 +53,8 @@
     "ndcg_10",
     "ndcg_20",
     "ndcg_30",
-    "map",
-    "mrr"
+    "map_10",
+    "mrr_10"
   ],
   "loss": {
     "name": "lambdaLoss",

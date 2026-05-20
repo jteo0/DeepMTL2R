@@ -280,7 +280,21 @@ def main():
     print("=" * 60)
 
     # Use task indices from YAML config (0=Relevance, 132-135=Auxiliary)
-    task_indices_mt = list(map(int, cfg.tasks.indices.split(",")))
+    default_task_indices = [0, 131, 132, 133, 134, 135]
+    print(f"\nDefault task indices: {default_task_indices}")
+    user_input = input("Enter task indices as comma-separated values (or press Enter to use default): ").strip()
+    
+    if user_input:
+        try:
+            task_indices_mt = list(map(int, user_input.split(",")))
+            print(f"Using custom task indices: {task_indices_mt}")
+        except ValueError:
+            print(f"Invalid input. Using default task indices: {default_task_indices}")
+            task_indices_mt = default_task_indices
+    else:
+        task_indices_mt = list(map(int, cfg.tasks.indices.split(",")))
+        print(f"Using task indices from YAML: {task_indices_mt}")
+    
     task_indices_st = [0]  # Single task is only Relevance (task 0)
 
     # Aggregators for standard metrics across folds

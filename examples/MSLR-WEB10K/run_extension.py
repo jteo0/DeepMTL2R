@@ -184,6 +184,7 @@ def run_experiment(
     use_mrl: bool = False,
     use_gating: bool = False,
     mrl_nesting_dims: list = None,
+    task_indices: list = None,
 ):
     """
     Execute a single DeepMTL2R extension experiment.
@@ -229,7 +230,8 @@ def run_experiment(
         )
 
     # Parse task config
-    task_indices = list(map(int, TASK_INDICES.split(",")))
+    if task_indices is None:
+        task_indices = list(map(int, TASK_INDICES.split(",")))
     num_tasks = len(task_indices)
 
     print_config_summary(experiment_name, config, use_mrl, use_gating, mrl_nesting_dims)
@@ -538,8 +540,21 @@ def main():
             break
         print("  Invalid input. Please enter 1 or 2.")
 
-    # Task indices are loaded from YAML config at the top level: TASK_INDICES = cfg.tasks.indices
-    print(f"Using Task Indices: {TASK_INDICES}")
+    # Allow user to override task indices
+    default_task_indices = [0, 131, 132, 133, 134, 135]
+    print(f"\nDefault task indices: {default_task_indices}")
+    user_input = input("Enter task indices as comma-separated values (or press Enter to use default): ").strip()
+    
+    if user_input:
+        try:
+            task_indices = list(map(int, user_input.split(",")))
+            print(f"Using custom task indices: {task_indices}")
+        except ValueError:
+            print(f"Invalid input. Using default task indices: {default_task_indices}")
+            task_indices = default_task_indices
+    else:
+        task_indices = list(map(int, TASK_INDICES.split(",")))
+        print(f"Using task indices from YAML: {task_indices}")
 
     all_fold_results = {}
 
@@ -600,6 +615,7 @@ def main():
                 use_mrl=True,
                 use_gating=False,
                 mrl_nesting_dims=MRL_NESTING_DIMS,
+                task_indices=task_indices,
             )
         elif choice == "2":
             fold_res = run_experiment(
@@ -612,6 +628,7 @@ def main():
                 use_mrl=False,
                 use_gating=True,
                 mrl_nesting_dims=None,
+                task_indices=task_indices,
             )
             
         all_fold_results[fold] = fold_res
