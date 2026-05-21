@@ -171,7 +171,24 @@ def get_weight_combinations(
                 combinations = combinations[:2]
             return combinations, None
         else:
-            return np.loadtxt("weights-5tasks.txt").tolist(), None
+            # Dynamic approach: load weights-5tasks.txt and take first num_tasks weights
+            weights_all = np.loadtxt("weights-5tasks.txt")
+            if len(weights_all.shape) == 1:  # Single line, convert to 2D
+                weights_all = weights_all.reshape(1, -1)
+            
+            if weights_all.shape[1] < num_tasks:
+                raise ValueError(
+                    f"weights-5tasks.txt has {weights_all.shape[1]} columns, "
+                    f"but num_tasks={num_tasks}. Not enough weights available."
+                )
+            
+            # Take first num_tasks weights from each row
+            combinations = weights_all[:, :num_tasks].tolist()
+            
+            # Limit to first 2 combinations in DEBUG mode for faster testing
+            if DEBUG:
+                combinations = combinations[:2]
+            return combinations, None
 
 
 def run_experiment(
