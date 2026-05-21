@@ -74,18 +74,48 @@ def metric_on_epoch(metric, model, dl_single, dev):
 
 def compute_metrics(metrics, model, dl_single, dev):
     metric_values_dict = {}
+    batch_results = {metric_name: [] for metric_name in metrics.keys()}
+    
+    with torch.no_grad():
+        for xb, yb, indices in dl_single:
+            xb = xb.to(device=dev)
+            yb = yb.to(device=dev)
+            indices = indices.to(device=dev)
+            mask = (yb == PADDED_Y_VALUE)
+            
+            # Forward pass ONCE per batch to save GPU memory and prevent fragmentation
+            scores = model.score(xb, mask, indices)
+            
+            for metric_name, ats in metrics.items():
+                metric_func = getattr(metrics_module, metric_name)
+                metric_ats = ats if ats else None
+                metric_func_with_ats = partial(metric_func, ats=metric_ats)
+                
+                res = metric_func_with_ats(scores, yb)
+                batch_results[metric_name].append(res.cpu())
+                
+            del scores
+            
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     for metric_name, ats in metrics.items():
-        metric_func = getattr(metrics_module, metric_name)
-        metric_func_with_ats = partial(metric_func, ats=ats)
-        metrics_values = metric_on_epoch(metric_func_with_ats, model, dl_single, dev)
-        metrics_names = ["{metric_name}_{at}".format(metric_name=metric_name, at=at) for at in ats]
+        metric_ats = ats if ats else None
+        metrics_values = torch.mean(torch.cat(batch_results[metric_name]), dim=0).numpy()
+        
+        metrics_names = (
+            [metric_name]
+            if metric_ats is None
+            else ["{metric_name}_{at}".format(metric_name=metric_name, at=at) for at in metric_ats]
+        )
         metric_values_dict.update(dict(zip(metrics_names, metrics_values)))
+        
     return metric_values_dict
 
 
 def epoch_summary(epoch, train_loss, val_loss, train_metrics, val_metrics):
     summary = "Epoch : {epoch} Train loss: {train_loss} Val loss: {val_loss}".format(
-        epoch=epoch, train_loss=train_loss, val_loss=val_loss)
+        epoch=epoch + 1, train_loss=train_loss, val_loss=val_loss)
     for metric_name, metric_value in train_metrics.items():
         summary += " Train {metric_name} {metric_value}".format(
             metric_name=metric_name, metric_value=metric_value)
@@ -104,7 +134,7 @@ def log_metrics(epoch, phase, metrics_dict, loss_values, batch_sizes, task_idx, 
     """Helper function to log per-task metrics and loss to a results file."""
     with open(results_filename, "a") as file:
         loss_result = np.sum([a * b for a, b in zip(loss_values, batch_sizes)]) / np.sum(batch_sizes)
-        file.write(f"epoch:{epoch}\ttask:{task_idx}\t{phase} Loss:{loss_result}\t")
+        file.write(f"epoch:{epoch + 1}\ttask:{task_idx}\t{phase} Loss:{loss_result}\t")
         if metrics_dict:
             file.write(f"{phase} Metrics:{metrics_dict}\t")
         file.write("\n")
@@ -126,8 +156,8 @@ def log_gating_sparsity(epoch, model, results_filename, threshold: float = 0.1):
     if hasattr(input_layer, 'gating_layer') and input_layer.gating_layer is not None:
         sparsity = input_layer.gating_layer.get_sparsity_ratio(threshold=threshold)
         with open(results_filename, "a") as file:
-            file.write(f"epoch:{epoch}\tGating Sparsity Ratio (threshold={threshold}): {sparsity:.4f}\n")
-        logger.info(f"Epoch {epoch} | Gating Sparsity Ratio: {sparsity:.4f}")
+            file.write(f"epoch:{epoch + 1}\tGating Sparsity Ratio (threshold={threshold}): {sparsity:.4f}\n")
+        logger.info(f"Epoch {epoch + 1} | Gating Sparsity Ratio: {sparsity:.4f}")
 
 
 def compute_mrl_dimensionality_efficiency(model, dl_single, dev, metrics, mrl_nesting_dims):
@@ -257,13 +287,13 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
     valid_metrics = {}
 
     for epoch in range(epochs):
-        logger.info(f"Epoch: {epoch}, Current learning rate: {get_current_lr(optimizer)}")
+        logger.info(f"Epoch: {epoch + 1}/{epochs + 1}, Current learning rate: {get_current_lr(optimizer)}")
         model.train()
 
         train_loss_values = {task_idx: [] for task_idx in task_indices}
         train_nums = []
 
-        for batch_id, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch}/{epochs} [Train]")):
+        for batch_id, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{epochs + 1} [Train]")):
             xb, yb, indices = batch
             all_indices = torch.arange(xb.shape[-1])
             keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
@@ -300,6 +330,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             log_gating_sparsity(epoch, model, results_filename)
 
         # Log training metrics
+        train_result = {}
         for task_idx in task_indices:
             temp_dl = []
             for xb, yb, indices in train_dataloader:
@@ -311,6 +342,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 temp_dl.append((modified_xb, task_yb, indices))
 
             train_metrics = compute_metrics(config.metrics, model, temp_dl, device)
+            train_result[task_idx] = train_metrics
             log_metrics(epoch, "Train", train_metrics,
                         train_loss_values[task_idx], train_nums, task_idx, results_filename)
 
@@ -320,7 +352,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             valid_loss_values = {task_idx: [] for task_idx in task_indices}
             valid_nums = []
 
-            for batch in tqdm(val_dataloader, desc=f"Epoch {epoch}/{epochs} [Valid]", leave=False):
+            for batch in tqdm(val_dataloader, desc=f"Epoch {epoch + 1}/{epochs + 1} [Valid]", leave=False):
                 xb, yb, indices = batch
                 all_indices = torch.arange(xb.shape[-1])
                 keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
@@ -337,7 +369,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                     valid_loss_values[task_idx].append(loss.item())
                 valid_nums.append(len(xb))
 
-            current_result = {}
+            valid_result = {}
             for task_idx in task_indices:
                 temp_dl = []
                 for xb, yb, indices in val_dataloader:
@@ -349,36 +381,36 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                     temp_dl.append((modified_xb, task_yb, indices))
 
                 valid_metrics = compute_metrics(config.metrics, model, temp_dl, device)
-                current_result[task_idx] = valid_metrics
+                valid_result[task_idx] = valid_metrics
                 log_metrics(epoch, "Valid", valid_metrics,
                             valid_loss_values[task_idx], valid_nums, task_idx, results_filename)
 
             if compute_delta_m:
                 metric_name = 'get_deltam'
                 metric_func = getattr(metrics_module, metric_name)
-                delta_m = metric_func(current_result, stl_delta_m)
+                delta_m = metric_func(valid_result, stl_delta_m)
 
         # --- Scheduler and early stopping ---
-        current_val_metric = current_result[task_indices[0]].get(config.val_metric)
+        current_val_metric = valid_result[task_indices[0]].get(config.val_metric)
         if scheduler:
             if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                scheduler.step(valid_metrics[config.val_metric])
+                scheduler.step(current_val_metric)
             else:
                 scheduler.step()
 
         # --- Save model checkpoint for the current epoch ---
-        epoch_checkpoint_path = os.path.join(output_dir, f"model_epoch_{epoch}.pkl")
+        epoch_checkpoint_path = os.path.join(output_dir, f"model_epoch_{epoch + 1}.pkl")
         torch.save(model.state_dict(), epoch_checkpoint_path)
         logger.info(
-            f"Epoch {epoch} | Model saved to {epoch_checkpoint_path}"
+            f"Epoch {epoch + 1} | Model saved to {epoch_checkpoint_path}"
         )
 
-        early_stop.step(current_val_metric, epoch)
-        if early_stop.stop_training(epoch):
+        early_stop.step(current_val_metric, epoch + 1)
+        if early_stop.stop_training(epoch + 1):
             logger.info(
                 "early stopping at epoch {} since {} didn't improve from epoch no {}. "
                 "Best value {}, current value {}".format(
-                    epoch, config.val_metric, early_stop.best_epoch,
+                    epoch + 1, config.val_metric, early_stop.best_epoch,
                     early_stop.best_value, current_val_metric
                 ))
             break
@@ -427,12 +459,36 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 logger.info(f"Task {task_idx} Dimensionality Efficiency:\n{efficiency_str}")
                 special_metrics.setdefault('mrl_dimensionality_efficiency', {})[task_idx] = efficiency
 
+    # --- Phase 1: Robustness to Noisy Features ---
+    logger.info("Computing robustness to noisy features (all tasks)...")
+    noise_robustness_results = {}
+    with torch.no_grad():
+        for task_idx in task_indices:
+            robustness_dl = []
+            for xb, yb, indices in val_dataloader:
+                all_indices = torch.arange(xb.shape[-1])
+                keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
+                modified_xb = xb[:, :, keep_indices]
+                task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
+                task_yb[yb == -1] = -1
+                robustness_dl.append((modified_xb, task_yb, indices))
+
+            noise_robustness_results[task_idx] = compute_noise_robustness(
+                base_model,
+                robustness_dl,
+                device,
+                config.metrics,
+                label_indices,
+            )
+            
+    special_metrics['noise_robustness'] = noise_robustness_results
+
     tensorboard_writer.close_all_writers()
 
     return {
         "epochs": epoch,
-        "train_metrics": train_metrics,
-        "val_metrics": valid_metrics,
+        "train_metrics": train_result,
+        "val_metrics": valid_result,
         "num_params": get_num_params(model),
         "special_metrics": special_metrics,
     }

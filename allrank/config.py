@@ -109,12 +109,15 @@ class Config:
         metrics_dict = defaultdict(list)  # type: Dict[str, list]
         for metric_string in metrics:
             try:
-                name, at = metric_string.split("_")
-                metrics_dict[name].append(int(at))
+                if "_" in metric_string:
+                    name, at = metric_string.rsplit("_", 1)
+                    metrics_dict[name].append(int(at))
+                else:
+                    metrics_dict[metric_string] = []
             except (ValueError, TypeError):
                 raise MetricConfigError(
                     metric_string,
-                    "Wrong formatting of metric in config. Expected format: <name>_<at> where name is valid metric name and at is and int")
+                    "Wrong formatting of metric in config. Expected format: <name>_<at> or a standalone metric name like map or mrr")
         return metrics_dict
 
 
