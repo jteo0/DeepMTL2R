@@ -195,7 +195,8 @@ class MultiHeadedAttention(nn.Module):
              for linear, x in zip(self.linears, (query, key, value))]
 
         # 2) Apply attention on all the projected vectors in batch.
-        x, self.attn = attention(query, key, value, mask=mask, dropout=self.dropout)
+        x, _ = attention(query, key, value, mask=mask, dropout=self.dropout)
+        self.attn = None  # Free attention matrix to prevent massive OOM during validation
 
         # 3) "Concat" using a view and apply a final linear.
         x = x.transpose(1, 2).contiguous() \
