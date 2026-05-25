@@ -286,14 +286,14 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
     train_metrics = {}
     valid_metrics = {}
 
-    for epoch in range(epochs):
-        logger.info(f"Epoch: {epoch + 1}/{epochs + 1}, Current learning rate: {get_current_lr(optimizer)}")
+    for epoch in tqdm(range(epochs), desc="Overall Training Progress", total=epochs):
+        logger.info(f"Epoch: {epoch + 1}/{epochs}, Current learning rate: {get_current_lr(optimizer)}")
         model.train()
 
         train_loss_values = {task_idx: [] for task_idx in task_indices}
         train_nums = []
 
-        for batch_id, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{epochs + 1} [Train]")):
+        for batch_id, batch in enumerate(train_dataloader):
             xb, yb, indices = batch
             all_indices = torch.arange(xb.shape[-1])
             keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
@@ -360,7 +360,7 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             valid_loss_values = {task_idx: [] for task_idx in task_indices}
             valid_nums = []
 
-            for batch in tqdm(val_dataloader, desc=f"Epoch {epoch + 1}/{epochs + 1} [Valid]", leave=False):
+            for batch in val_dataloader:
                 xb, yb, indices = batch
                 all_indices = torch.arange(xb.shape[-1])
                 keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
