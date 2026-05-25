@@ -297,17 +297,25 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             xb, yb, indices = batch
             all_indices = torch.arange(xb.shape[-1])
             keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
-            modified_xb = xb[:, :, keep_indices]
+            modified_xb = xb[:, :, keep_indices].to(device).detach().requires_grad_(True)
+            indices = indices.to(device)
+            yb_device = yb.to(device)
+
+            # Shared forward pass
+            mask = (yb_device == PADDED_Y_VALUE)
+            output = model(modified_xb, mask, indices)
 
             losses = []
             for task_idx in task_indices:
                 task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                 task_yb[yb == -1] = -1
-                loss = loss_batch(
-                    model, loss_func,
-                    modified_xb.to(device), task_yb.to(device), indices.to(device),
-                    use_mrl=use_mrl
-                )
+                task_yb = task_yb.to(device).detach().requires_grad_(True)
+                
+                if use_mrl and _is_matryoshka_output(output):
+                    mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
+                    loss = mrl_loss(output, task_yb)
+                else:
+                    loss = loss_func(output, task_yb)
                 losses.append(loss)
                 train_loss_values[task_idx].append(loss.item())
             train_nums.append(len(xb))
@@ -356,16 +364,24 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 xb, yb, indices = batch
                 all_indices = torch.arange(xb.shape[-1])
                 keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
-                modified_xb = xb[:, :, keep_indices]
+                modified_xb = xb[:, :, keep_indices].to(device).detach().requires_grad_(True)
+                indices = indices.to(device)
+                yb_device = yb.to(device)
+
+                # Shared validation forward pass
+                mask = (yb_device == PADDED_Y_VALUE)
+                output = model(modified_xb, mask, indices)
 
                 for task_idx in task_indices:
                     task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
                     task_yb[yb == -1] = -1
-                    loss = loss_batch(
-                        model, loss_func,
-                        modified_xb.to(device), task_yb.to(device), indices.to(device),
-                        use_mrl=use_mrl
-                    )
+                    task_yb = task_yb.to(device).detach().requires_grad_(True)
+                    
+                    if use_mrl and _is_matryoshka_output(output):
+                        mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
+                        loss = mrl_loss(output, task_yb)
+                    else:
+                        loss = loss_func(output, task_yb)
                     valid_loss_values[task_idx].append(loss.item())
                 valid_nums.append(len(xb))
 
