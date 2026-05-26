@@ -282,6 +282,16 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                                   task_weights=task_weights,
                                   epsilon=epsilon)
 
+    # Setup device type and mixed precision dtype
+    device_type = 'cuda' if device.type == 'cuda' else 'cpu'
+    is_bf16_supported = False
+    if device_type == 'cuda':
+        try:
+            is_bf16_supported = torch.cuda.is_bf16_supported()
+        except:
+            pass
+    dtype = torch.bfloat16 if (device_type == 'cpu' or is_bf16_supported) else torch.float16
+
     epoch = -1
     train_metrics = {}
     valid_metrics = {}
@@ -301,23 +311,24 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
             indices = indices.to(device)
             yb_device = yb.to(device)
 
-            # Shared forward pass
+            # Shared forward pass with AMP
             mask = (yb_device == PADDED_Y_VALUE)
-            output = model(modified_xb, mask, indices)
+            with torch.autocast(device_type=device_type, dtype=dtype):
+                output = model(modified_xb, mask, indices)
 
-            losses = []
-            for task_idx in task_indices:
-                task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
-                task_yb[yb == -1] = -1
-                task_yb = task_yb.to(device).detach().requires_grad_(True)
-                
-                if use_mrl and _is_matryoshka_output(output):
-                    mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
-                    loss = mrl_loss(output, task_yb)
-                else:
-                    loss = loss_func(output, task_yb)
-                losses.append(loss)
-                train_loss_values[task_idx].append(loss.item())
+                losses = []
+                for task_idx in task_indices:
+                    task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
+                    task_yb[yb == -1] = -1
+                    task_yb = task_yb.to(device).detach().requires_grad_(True)
+                    
+                    if use_mrl and _is_matryoshka_output(output):
+                        mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
+                        loss = mrl_loss(output, task_yb)
+                    else:
+                        loss = loss_func(output, task_yb)
+                    losses.append(loss)
+                    train_loss_values[task_idx].append(loss.item())
             train_nums.append(len(xb))
 
             if optimizer:
@@ -337,19 +348,23 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
         if use_gating:
             log_gating_sparsity(epoch, model, results_filename)
 
-        # Log training metrics
+        # Log training metrics (only computed at the last epoch to prevent TLE)
         train_result = {}
         for task_idx in task_indices:
-            temp_dl = []
-            for xb, yb, indices in train_dataloader:
-                all_indices = torch.arange(xb.shape[-1])
-                keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
-                modified_xb = xb[:, :, keep_indices]
-                task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
-                task_yb[yb == -1] = -1
-                temp_dl.append((modified_xb, task_yb, indices))
+            if epoch == epochs - 1:
+                temp_dl = []
+                for xb, yb, indices in train_dataloader:
+                    all_indices = torch.arange(xb.shape[-1])
+                    keep_indices = all_indices[~torch.isin(all_indices, torch.tensor(label_indices))]
+                    modified_xb = xb[:, :, keep_indices]
+                    task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
+                    task_yb[yb == -1] = -1
+                    temp_dl.append((modified_xb, task_yb, indices))
 
-            train_metrics = compute_metrics(config.metrics, model, temp_dl, device)
+                train_metrics = compute_metrics(config.metrics, model, temp_dl, device)
+            else:
+                train_metrics = {}
+
             train_result[task_idx] = train_metrics
             log_metrics(epoch, "Train", train_metrics,
                         train_loss_values[task_idx], train_nums, task_idx, results_filename)
@@ -368,21 +383,22 @@ def fit(epochs, moo_method, main_task_index, task_indices, label_indices,
                 indices = indices.to(device)
                 yb_device = yb.to(device)
 
-                # Shared validation forward pass
+                # Shared validation forward pass with AMP
                 mask = (yb_device == PADDED_Y_VALUE)
-                output = model(modified_xb, mask, indices)
+                with torch.autocast(device_type=device_type, dtype=dtype):
+                    output = model(modified_xb, mask, indices)
 
-                for task_idx in task_indices:
-                    task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
-                    task_yb[yb == -1] = -1
-                    task_yb = task_yb.to(device).detach().requires_grad_(True)
-                    
-                    if use_mrl and _is_matryoshka_output(output):
-                        mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
-                        loss = mrl_loss(output, task_yb)
-                    else:
-                        loss = loss_func(output, task_yb)
-                    valid_loss_values[task_idx].append(loss.item())
+                    for task_idx in task_indices:
+                        task_yb = yb if task_idx == 0 else xb[:, :, task_idx]
+                        task_yb[yb == -1] = -1
+                        task_yb = task_yb.to(device).detach().requires_grad_(True)
+                        
+                        if use_mrl and _is_matryoshka_output(output):
+                            mrl_loss = MatryoshkaRankingLoss(base_loss_func=loss_func, relative_importance=None)
+                            loss = mrl_loss(output, task_yb)
+                        else:
+                            loss = loss_func(output, task_yb)
+                        valid_loss_values[task_idx].append(loss.item())
                 valid_nums.append(len(xb))
 
             valid_result = {}

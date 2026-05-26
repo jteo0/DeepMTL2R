@@ -151,44 +151,29 @@ def get_weight_combinations(
             epsilon_values = epsilon_values[:2]
         return None, epsilon_values
     else:
-        if num_tasks == 2:
-            combinations = [[x, 1 - x] for x in np.linspace(0.001, 0.991, 10)]
-            # Limit to first 2 combinations in DEBUG mode for faster testing
-            if DEBUG:
-                combinations = combinations[:2]
-            return combinations, None
-        elif num_tasks == 6:
-            # Load 5-task weights and prepend uniform weight for task 0
-            weights_5tasks = np.loadtxt("weights-5tasks.txt")
-            # Prepend 1/6 for task 0, then normalize
-            combinations = []
-            for row in weights_5tasks:
-                combined = np.concatenate(([1/6], row / 6))
-                combined = combined / combined.sum()  # Renormalize to sum=1
-                combinations.append(combined.tolist())
-            # Limit to first 2 combinations in DEBUG mode for faster testing
-            if DEBUG:
-                combinations = combinations[:2]
-            return combinations, None
+        # Dynamic simplex sampling: Generate N + 2 combinations (exactly 6 combinations for N=4 tasks)
+        combinations = []
+        # 1. Uniform
+        combinations.append([1.0 / num_tasks] * num_tasks)
+        if num_tasks > 1:
+            # 2. Main task highly focused
+            combinations.append([0.70] + [0.30 / (num_tasks - 1)] * (num_tasks - 1))
+            # 3. Main task moderately focused
+            combinations.append([0.40] + [0.60 / (num_tasks - 1)] * (num_tasks - 1))
+            # 4. Each auxiliary task focused
+            for i in range(1, num_tasks):
+                comb = [0.10] * num_tasks
+                comb[i] = 0.70
+                # Normalize just to be safe
+                s = sum(comb)
+                combinations.append([x / s for x in comb])
         else:
-            # Dynamic approach: load weights-5tasks.txt and take first num_tasks weights
-            weights_all = np.loadtxt("weights-5tasks.txt")
-            if len(weights_all.shape) == 1:  # Single line, convert to 2D
-                weights_all = weights_all.reshape(1, -1)
-            
-            if weights_all.shape[1] < num_tasks:
-                raise ValueError(
-                    f"weights-5tasks.txt has {weights_all.shape[1]} columns, "
-                    f"but num_tasks={num_tasks}. Not enough weights available."
-                )
-            
-            # Take first num_tasks weights from each row
-            combinations = weights_all[:, :num_tasks].tolist()
-            
-            # Limit to first 2 combinations in DEBUG mode for faster testing
-            if DEBUG:
-                combinations = combinations[:2]
-            return combinations, None
+            combinations.append([1.0])
+
+        # Limit to first 2 combinations in DEBUG mode for faster testing
+        if DEBUG:
+            combinations = combinations[:2]
+        return combinations, None
 
 
 def run_experiment(

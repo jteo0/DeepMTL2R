@@ -18,6 +18,20 @@ def ndcg(y_pred, y_true, ats=None, gain_function=lambda x: torch.pow(2, x) - 1, 
     :param filler_value: a filler NDCG value to use when there are no relevant items in listing
     :return: NDCG values for each slate and rank passed, shape [batch_size, len(ats)]
     """
+    # Automatically switch to linear gain for continuous targets to avoid FP32 overflow (NaN)
+    if isinstance(y_true, torch.Tensor):
+        if y_true.max() > 10.0:
+            gain_function = lambda x: x
+    elif isinstance(y_true, np.ndarray):
+        if y_true.max() > 10.0:
+            gain_function = lambda x: x
+    elif y_true is not None:
+        try:
+            if max(y_true) > 10.0:
+                gain_function = lambda x: x
+        except:
+            pass
+
     idcg = dcg(y_true, y_true, ats, gain_function, padding_indicator)
     ndcg_ = dcg(y_pred, y_true, ats, gain_function, padding_indicator) / idcg
     idcg_mask = idcg == 0
