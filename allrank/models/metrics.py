@@ -20,14 +20,14 @@ def ndcg(y_pred, y_true, ats=None, gain_function=lambda x: torch.pow(2, x) - 1, 
     """
     # Automatically switch to linear gain for continuous targets to avoid FP32 overflow (NaN)
     if isinstance(y_true, torch.Tensor):
-        if y_true.max() > 10.0:
+        if y_true.max() > 4.0:
             gain_function = lambda x: x
     elif isinstance(y_true, np.ndarray):
-        if y_true.max() > 10.0:
+        if y_true.max() > 4.0:
             gain_function = lambda x: x
     elif y_true is not None:
         try:
-            if max(y_true) > 10.0:
+            if max(y_true) > 4.0:
                 gain_function = lambda x: x
         except:
             pass
