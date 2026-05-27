@@ -234,7 +234,7 @@ class LTRModel(nn.Module):
 def make_model(fc_model, transformer, post_model, n_features,
                use_mrl: bool = False,
                mrl_nesting_dims: Optional[List[int]] = None,
-               use_gating: bool = False):
+               use_gating: Optional[bool] = None):
     """
     Factory function for instantiating LTRModel.
 
@@ -248,7 +248,14 @@ def make_model(fc_model, transformer, post_model, n_features,
     :return: LTRModel instance.
     """
     if fc_model:
-        fc_model_kwargs = dict(fc_model)
+        fc_model_kwargs = dict(fc_model) if isinstance(fc_model, dict) else asdict(fc_model)
+        if use_gating is None:
+            if hasattr(fc_model, 'use_gating'):
+                use_gating = getattr(fc_model, 'use_gating', False)
+            elif isinstance(fc_model, dict):
+                use_gating = fc_model.get('use_gating', False)
+            else:
+                use_gating = False
         fc_model_kwargs['use_gating'] = use_gating
         fc_model_inst = FCModel(**fc_model_kwargs, n_features=n_features)
     else:

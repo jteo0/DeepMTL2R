@@ -42,7 +42,7 @@
     }
   },
   "training": {
-    "epochs": 2,
+    "epochs": 50,
     "early_stopping_patience": 50,
     "gradient_clipping_norm": null
   },
