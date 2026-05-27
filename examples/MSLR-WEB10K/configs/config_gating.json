@@ -24,7 +24,7 @@
   "data": {
     "path": "datasets/MSLR-WEB10K/Fold1",
     "validation_ds_role": "vali",
-    "num_workers": 1,
+    "num_workers": 12,
     "batch_size": 32,
     "slate_length": 240
   },
