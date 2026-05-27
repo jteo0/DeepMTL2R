@@ -12,12 +12,12 @@ dataset:
   path: "../../datasets/MSLR-WEB10K"    # Path to dataset folder
   reduction_method: "mean"              # Loss reduction: "mean" | "sum"
   # label_indices use 0-indexed ARRAY columns (libsvm 132-136 → array columns 131-135 after loading)
-  label_indices: [131, 132, 133, 134, 135] # Array columns for libsvm 132-136 (5 auxiliary)
+  label_indices: [131, 132, 133]
   folds: [1, 2]
 
 tasks:
   # task_indices use 0-indexed ARRAY columns (libsvm 132-136 → array columns 131-135 after loading)
-  indices: "0,131,132,133,134,135"           # Task 0 (main) + libsvm 132-136 (array cols 131-135)
+  indices: "0,131,132,133"           # Task 0 (main) + libsvm 132-136 (array cols 131-135)
   weights: "0,10"                       # Min & max weight index for exploration
                                         # range(0, 10) → 10 weight combinations
 
