@@ -153,6 +153,8 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
     if DEBUG:
         config.training.epochs = 2
     config.model.use_mrl = False
+    if hasattr(config.model.fc_model, 'use_gating'):
+        config.model.fc_model.use_gating = False
     config.data.path = dataset_path
     config.loss.args["reduction"] = REDUCTION_METHOD
 
