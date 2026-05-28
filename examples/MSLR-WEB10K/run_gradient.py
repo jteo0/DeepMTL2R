@@ -57,7 +57,11 @@ try:
     FOLDS = cfg.dataset.folds
 except AttributeError:
     # Fallback to old path variable if base_path/folds not available
-    DATASET_BASE_PATH = cfg.dataset.path.rsplit('/', 1)[0] if 'Fold' in cfg.dataset.path else cfg.dataset.path
+    DATASET_BASE_PATH = (
+        cfg.dataset.path.rsplit("/", 1)[0]
+        if "Fold" in cfg.dataset.path
+        else cfg.dataset.path
+    )
     FOLDS = [1]
 REDUCTION_METHOD = cfg.dataset.reduction_method
 TASK_INDICES = cfg.tasks.indices
@@ -344,7 +348,9 @@ def finetune_with_scheduler(
     return summary
 
 
-def run_gradient_experiment(choice, ckpt, dataset_path, train_dataloader, val_dataloader, n_features):
+def run_gradient_experiment(
+    choice, ckpt, dataset_path, train_dataloader, val_dataloader, n_features
+):
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
@@ -447,7 +453,9 @@ def run_gradient_experiment(choice, ckpt, dataset_path, train_dataloader, val_da
         torch.cuda.empty_cache()
 
     fold_str = os.path.basename(dataset_path).lower()
-    rd = os.path.join("result", "final_experiment", "gradient_dynamics", exp_tag, fold_str)
+    rd = os.path.join(
+        "result", "final_experiment", "gradient_dynamics", exp_tag, fold_str
+    )
     os.makedirs(rd, exist_ok=True)
     logger = init_logger(rd)
 
@@ -528,9 +536,11 @@ def main():
 
         if not os.path.exists(ckpt):
             print(f"\n[ERROR] Checkpoint not found: {ckpt}")
-            print("Please run run_extension.py or run_baseline.py first to generate this checkpoint.")
+            print(
+                "Please run run_extension.py or run_baseline.py first to generate this checkpoint."
+            )
             continue
-        
+
         # Load dataset once per fold
         config_tmp = Config.from_json(CONFIG_GATING)
         max_rows = None
@@ -574,6 +584,7 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         import gc
+
         gc.collect()
 
 

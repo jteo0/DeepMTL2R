@@ -78,25 +78,27 @@ from config_loader import load_config
 cfg = load_config()
 
 # Extract configuration from YAML
-MRL_NESTING_DIMS = getattr(cfg.model, 'mrl_nesting_dims', [32, 64, 128, 256])
-MOO_METHOD = getattr(cfg.model, 'moo_method', 'ls')
-DATASET_NAME = getattr(cfg.dataset, 'name', '50bps')
-DATASET_BASE_PATH = getattr(cfg.dataset, 'base_path', None) or getattr(cfg.dataset, 'path', '../../datasets/MSLR-WEB10K')
-FOLDS = getattr(cfg.dataset, 'folds', None) or [1]
+MRL_NESTING_DIMS = getattr(cfg.model, "mrl_nesting_dims", [32, 64, 128, 256])
+MOO_METHOD = getattr(cfg.model, "moo_method", "ls")
+DATASET_NAME = getattr(cfg.dataset, "name", "50bps")
+DATASET_BASE_PATH = getattr(cfg.dataset, "base_path", None) or getattr(
+    cfg.dataset, "path", "../../datasets/MSLR-WEB10K"
+)
+FOLDS = getattr(cfg.dataset, "folds", None) or [1]
 
 # Ensure DATASET_BASE_PATH and FOLDS are not None
 if DATASET_BASE_PATH is None:
-    DATASET_BASE_PATH = '../../datasets/MSLR-WEB10K'
+    DATASET_BASE_PATH = "../../datasets/MSLR-WEB10K"
 if FOLDS is None:
     FOLDS = [1]
-    
-REDUCTION_METHOD = getattr(cfg.dataset, 'reduction_method', 'mean')
-TASK_INDICES = getattr(cfg.tasks, 'indices', '0,131,132,133,134,135')
-TASK_WEIGHTS = getattr(cfg.tasks, 'weights', '0,10')
-OUTPUT_DIR = getattr(cfg.output, 'base_dir', 'outputs')
-CHECKPOINT_DIR = getattr(cfg.output, 'checkpoint_dir', 'checkpoints')
-LABEL_INDICES = getattr(cfg.dataset, 'label_indices', [131, 132, 133, 134, 135])
-DEBUG = getattr(cfg.experiment, 'debug', False)
+
+REDUCTION_METHOD = getattr(cfg.dataset, "reduction_method", "mean")
+TASK_INDICES = getattr(cfg.tasks, "indices", "0,131,132,133,134,135")
+TASK_WEIGHTS = getattr(cfg.tasks, "weights", "0,10")
+OUTPUT_DIR = getattr(cfg.output, "base_dir", "outputs")
+CHECKPOINT_DIR = getattr(cfg.output, "checkpoint_dir", "checkpoints")
+LABEL_INDICES = getattr(cfg.dataset, "label_indices", [131, 132, 133, 134, 135])
+DEBUG = getattr(cfg.experiment, "debug", False)
 
 # =============================================================================
 # Config file paths (relative to this directory)
@@ -428,12 +430,12 @@ def run_experiment(
             task_name = "Main Relevance" if t_idx == 0 else f"Auxiliary Task {t_idx}"
             metric_str = ", ".join([f"{k}={v:.4f}" for k, v in t_metrics.items()])
             print(f"  - {task_name}: {metric_str}")
-        
+
         special_metrics = result.get("special_metrics", {})
         if use_gating and "gating_sparsity_ratio" in special_metrics:
             sparsity = special_metrics["gating_sparsity_ratio"]
             print(f"  - Gating Sparsity Ratio: {sparsity:.4f}")
-            
+
         if "noise_robustness" in special_metrics:
             print("\n  - Robustness to Noisy Features (Global Drop for this fold):")
             fold_rob_agg = {}
@@ -441,7 +443,9 @@ def run_experiment(
                 for k, v in rob.items():
                     if "ndcg" in k or "map" in k:
                         fold_rob_agg.setdefault(k, []).append(v)
-            rob_str = ", ".join([f"{k}={np.mean(vals):.4f}" for k, vals in fold_rob_agg.items()])
+            rob_str = ", ".join(
+                [f"{k}={np.mean(vals):.4f}" for k, vals in fold_rob_agg.items()]
+            )
             print(f"      {rob_str}")
         print()
 
@@ -459,7 +463,7 @@ def run_experiment(
         experiment_results[weight_index] = {
             "val_metrics": val_metrics,
             "num_params": num_params,
-            "special_metrics": special_metrics
+            "special_metrics": special_metrics,
         }
 
         # Track best overall run based on NDCG@10 of main task (task 0)
@@ -514,9 +518,12 @@ def run_experiment(
     )
 
     for weight_index in range(len(weight_combinations)):
-        source_model_path = os.path.join(source_base_dir, str(weight_index), "model.pkl")
+        source_model_path = os.path.join(
+            source_base_dir, str(weight_index), "model.pkl"
+        )
         destination_checkpoint_path = os.path.join(
-            checkpoint_dir_full, f"{checkpoint_subdir}_{fold_str}_weight{weight_index}.pkl"
+            checkpoint_dir_full,
+            f"{checkpoint_subdir}_{fold_str}_weight{weight_index}.pkl",
         )
 
         if os.path.exists(source_model_path):
@@ -526,7 +533,7 @@ def run_experiment(
             print(f"  ⚠ weight{weight_index}: Not found at {source_model_path}")
 
     print(f"\nAll weight combinations completed for {experiment_name}!")
-    
+
     return experiment_results
 
 
@@ -545,8 +552,10 @@ def main():
     # Allow user to override task indices
     default_task_indices = [0, 131, 132, 133, 134, 135]
     print(f"\nDefault task indices: {default_task_indices}")
-    user_input = input("Enter task indices as comma-separated values (or press Enter to use default): ").strip()
-    
+    user_input = input(
+        "Enter task indices as comma-separated values (or press Enter to use default): "
+    ).strip()
+
     if user_input:
         try:
             task_indices = list(map(int, user_input.split(",")))
@@ -564,7 +573,7 @@ def main():
         print(f"\n" + "=" * 60)
         print(f" Processing Fold {fold}")
         print("=" * 60)
-        
+
         dataset_path = os.path.join(DATASET_BASE_PATH, f"Fold{fold}")
 
         if not os.path.exists(dataset_path):
@@ -572,18 +581,20 @@ def main():
 
         # Load configuration for dataloader settings
         config_tmp = Config.from_json(CONFIG_GATING)
-        
+
         # Calculate max_rows for debug mode
         max_rows = None
         if DEBUG:
-            debug_ratio = cfg.experiment.get('debug_ratio', 0.1)
+            debug_ratio = cfg.experiment.get("debug_ratio", 0.1)
             if debug_ratio > 0:
                 estimated_total_rows = 30000000
                 max_rows = max(1, int(estimated_total_rows * debug_ratio))
-                print(f"DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)")
+                print(
+                    f"DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)"
+                )
             else:
                 print(f"DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset")
-        
+
         print(f"Loading MSLR-WEB10K dataset from {dataset_path}...")
         train_ds, val_ds = load_libsvm_dataset(
             input_path=dataset_path,
@@ -591,7 +602,9 @@ def main():
             validation_ds_role=config_tmp.data.validation_ds_role,
             max_rows=max_rows,
         )
-        print(f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}")
+        print(
+            f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}"
+        )
 
         # Number of features (exclude label candidate columns)
         nf = train_ds.shape[-1] - len(LABEL_INDICES)
@@ -632,7 +645,7 @@ def main():
                 mrl_nesting_dims=None,
                 task_indices=task_indices,
             )
-            
+
         all_fold_results[fold] = fold_res
 
         # Free memory at the end of each fold
@@ -640,14 +653,17 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         import gc
+
         gc.collect()
 
     print("\n" + "=" * 80)
     print("EXTENSION RESULTS (CROSS-VALIDATION AVERAGE)")
     print("=" * 80)
     print(f"Folds Evaluated:                {FOLDS}")
-    
-    baseline_summary_path = os.path.join(OUTPUT_DIR, "baselines", "baseline_summary.json")
+
+    baseline_summary_path = os.path.join(
+        OUTPUT_DIR, "baselines", "baseline_summary.json"
+    )
     avg_ndcg30_st = None
     if os.path.exists(baseline_summary_path):
         try:
@@ -656,31 +672,33 @@ def main():
             avg_ndcg30_st = bs.get("single_task", {}).get("ndcg30_avg")
         except Exception:
             pass
-            
+
     if len(all_fold_results) > 0:
         first_fold = list(all_fold_results.keys())[0]
         weight_indices = sorted(list(all_fold_results[first_fold].keys()))
-        
+
         for w_idx in weight_indices:
             print(f"\n--- WEIGHT COMBINATION {w_idx} METRICS ---")
-            
-            agg_metrics = {} 
+
+            agg_metrics = {}
             agg_sparsity = []
             agg_robustness = {}
             agg_mrl = {}
-            
+
             for fold in FOLDS:
                 if fold not in all_fold_results or w_idx not in all_fold_results[fold]:
                     continue
                 res = all_fold_results[fold][w_idx]
                 v_metrics = res.get("val_metrics", {})
                 s_metrics = res.get("special_metrics", {})
-                
+
                 if "gating_sparsity_ratio" in s_metrics:
                     agg_sparsity.append(float(s_metrics["gating_sparsity_ratio"]))
-                    
+
                 if "mrl_dimensionality_efficiency" in s_metrics:
-                    for t_idx, eff in s_metrics["mrl_dimensionality_efficiency"].items():
+                    for t_idx, eff in s_metrics[
+                        "mrl_dimensionality_efficiency"
+                    ].items():
                         if t_idx not in agg_mrl:
                             agg_mrl[t_idx] = {}
                         for dim, dim_metrics in eff.items():
@@ -690,14 +708,14 @@ def main():
                                 if m_key not in agg_mrl[t_idx][dim]:
                                     agg_mrl[t_idx][dim][m_key] = []
                                 agg_mrl[t_idx][dim][m_key].append(float(m_val))
-                    
+
                 if "noise_robustness" in s_metrics:
                     for t_idx, rob in s_metrics["noise_robustness"].items():
                         for r_key, r_val in rob.items():
                             if r_key not in agg_robustness:
                                 agg_robustness[r_key] = []
                             agg_robustness[r_key].append(float(r_val))
-                    
+
                 for t_idx, t_metrics in v_metrics.items():
                     if t_idx not in agg_metrics:
                         agg_metrics[t_idx] = {}
@@ -705,13 +723,13 @@ def main():
                         if metric_key not in agg_metrics[t_idx]:
                             agg_metrics[t_idx][metric_key] = []
                         agg_metrics[t_idx][metric_key].append(float(val))
-            
+
             task_0_ndcg30_mean = None
             global_ndcg10_means = []
             global_ndcg30_means = []
             global_map_means = []
             global_mrr_means = []
-            
+
             for t_idx in sorted(agg_metrics.keys()):
                 task_name = "Task 0 (Main)" if t_idx == 0 else f"Task {t_idx} (Aux)"
                 print(f"  {task_name}:")
@@ -719,22 +737,22 @@ def main():
                     arr = np.array(agg_metrics[t_idx][metric_key])
                     mean_val = float(np.mean(arr))
                     std_val = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
-                    
+
                     if t_idx == 0 and metric_key == "ndcg_30":
                         task_0_ndcg30_mean = mean_val
-                        
+
                     if np.isnan(mean_val) or np.isinf(mean_val):
                         mean_str = "—"
                     else:
                         mean_str = f"{mean_val:.4f}"
-                        
+
                     if np.isnan(std_val) or np.isinf(std_val):
                         std_str = "—"
                     else:
                         std_str = f"{std_val:.4f}"
-                        
+
                     print(f"    {metric_key}: {mean_str} ± {std_str}")
-                    
+
             print(f"\n  --- Global Averages (All Tasks) ---")
             global_metrics = {}
             for t_idx in sorted(agg_metrics.keys()):
@@ -744,21 +762,25 @@ def main():
                     mean_val = float(np.mean(vals))
                     if not np.isnan(mean_val):
                         global_metrics[metric_key].append(mean_val)
-                        
+
             for metric_key in sorted(global_metrics.keys()):
                 g_avg = float(np.mean(global_metrics[metric_key]))
                 print(f"    {metric_key.upper()}: {g_avg:.4f}")
-                    
-            if task_0_ndcg30_mean is not None and avg_ndcg30_st is not None and avg_ndcg30_st > 0:
+
+            if (
+                task_0_ndcg30_mean is not None
+                and avg_ndcg30_st is not None
+                and avg_ndcg30_st > 0
+            ):
                 delta_m = ((task_0_ndcg30_mean - avg_ndcg30_st) / avg_ndcg30_st) * 100
                 print(f"\n  Δm% (Relative Improvement vs Single-Task): {delta_m:+.2f}%")
-                
+
             if len(agg_sparsity) > 0:
                 s_arr = np.array(agg_sparsity)
                 s_mean = float(np.mean(s_arr))
                 s_std = float(np.std(s_arr, ddof=1)) if len(s_arr) > 1 else 0.0
                 print(f"  Gating Sparsity Ratio: {s_mean:.4f} ± {s_std:.4f}")
-                
+
             if len(agg_robustness) > 0:
                 print(f"\n  Robustness to Noisy Features (Global Average Drop):")
                 for r_key in sorted(agg_robustness.keys()):
@@ -767,7 +789,7 @@ def main():
                         r_mean = float(np.mean(r_arr))
                         r_std = float(np.std(r_arr, ddof=1)) if len(r_arr) > 1 else 0.0
                         print(f"    {r_key}: {r_mean:.4f} ± {r_std:.4f}")
-                        
+
             if len(agg_mrl) > 0:
                 print(f"\n  Effective Dimensionality Efficiency (Matryoshka):")
                 for t_idx in sorted(agg_mrl.keys()):
@@ -779,7 +801,11 @@ def main():
                             if "ndcg" in m_key or "map" in m_key:
                                 m_arr = np.array(agg_mrl[t_idx][dim][m_key])
                                 m_mean = float(np.mean(m_arr))
-                                m_std = float(np.std(m_arr, ddof=1)) if len(m_arr) > 1 else 0.0
+                                m_std = (
+                                    float(np.std(m_arr, ddof=1))
+                                    if len(m_arr) > 1
+                                    else 0.0
+                                )
                                 print(f"        {m_key}: {m_mean:.4f} ± {m_std:.4f}")
     print("=" * 80)
 

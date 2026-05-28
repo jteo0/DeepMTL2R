@@ -91,7 +91,11 @@ try:
     FOLDS = cfg.dataset.folds
 except AttributeError:
     # Fallback to old path variable if base_path/folds not available
-    DATASET_BASE_PATH = cfg.dataset.path.rsplit('/', 1)[0] if 'Fold' in cfg.dataset.path else cfg.dataset.path
+    DATASET_BASE_PATH = (
+        cfg.dataset.path.rsplit("/", 1)[0]
+        if "Fold" in cfg.dataset.path
+        else cfg.dataset.path
+    )
     FOLDS = [1]
 REDUCTION_METHOD = cfg.dataset.reduction_method
 TASK_INDICES = cfg.tasks.indices
@@ -474,7 +478,14 @@ def finetune_with_weighting(
     return summary
 
 
-def run_loss_weighting_experiment(experiment_choice, checkpoint_path, dataset_path, train_dataloader, val_dataloader, n_features):
+def run_loss_weighting_experiment(
+    experiment_choice,
+    checkpoint_path,
+    dataset_path,
+    train_dataloader,
+    val_dataloader,
+    n_features,
+):
     """Run the full loss weighting comparison for one primary experiment checkpoint."""
     # Set reproducibility
     torch.manual_seed(42)
@@ -711,9 +722,11 @@ def main():
 
         if not os.path.exists(checkpoint_path):
             print(f"\n[ERROR] Checkpoint not found: {checkpoint_path}")
-            print("Please run run_extension.py or run_baseline.py first to generate this checkpoint.")
+            print(
+                "Please run run_extension.py or run_baseline.py first to generate this checkpoint."
+            )
             continue
-        
+
         # Load dataset once per fold
         config_tmp = Config.from_json(CONFIG_GATING)
         max_rows = None
@@ -750,13 +763,16 @@ def main():
             batch_size=config_tmp.data.batch_size,
         )
 
-        run_loss_weighting_experiment(choice, checkpoint_path, dataset_path, train_dl, val_dl, nf)
+        run_loss_weighting_experiment(
+            choice, checkpoint_path, dataset_path, train_dl, val_dl, nf
+        )
 
         # Free memory at the end of each fold
         del train_ds, val_ds, train_dl, val_dl
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         import gc
+
         gc.collect()
 
 

@@ -29,6 +29,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 import logging
+
 logging.getLogger().setLevel(logging.WARNING)
 logging.getLogger("allrank").setLevel(logging.WARNING)
 logging.getLogger("allrank.utils.ltr_logging").setLevel(logging.WARNING)
@@ -53,21 +54,23 @@ from config_loader import load_config
 cfg = load_config()
 
 # Extract configuration from YAML
-DATASET_NAME = getattr(cfg.dataset, 'name', '50bps')
-DATASET_BASE_PATH = getattr(cfg.dataset, 'base_path', None) or getattr(cfg.dataset, 'path', '../../datasets/MSLR-WEB10K')
-FOLDS = getattr(cfg.dataset, 'folds', None) or [1]
+DATASET_NAME = getattr(cfg.dataset, "name", "50bps")
+DATASET_BASE_PATH = getattr(cfg.dataset, "base_path", None) or getattr(
+    cfg.dataset, "path", "../../datasets/MSLR-WEB10K"
+)
+FOLDS = getattr(cfg.dataset, "folds", None) or [1]
 
 # Ensure DATASET_BASE_PATH and FOLDS are not None
 if DATASET_BASE_PATH is None:
-    DATASET_BASE_PATH = '../../datasets/MSLR-WEB10K'
+    DATASET_BASE_PATH = "../../datasets/MSLR-WEB10K"
 if FOLDS is None:
     FOLDS = [1]
-    
-REDUCTION_METHOD = getattr(cfg.dataset, 'reduction_method', 'mean')
-LABEL_INDICES = getattr(cfg.dataset, 'label_indices', [131, 132, 133, 134, 135])
-OUTPUT_DIR = getattr(cfg.output, 'base_dir', 'outputs')
-CHECKPOINT_DIR = getattr(cfg.output, 'checkpoint_dir', 'checkpoints')
-DEBUG = getattr(cfg.experiment, 'debug', False)
+
+REDUCTION_METHOD = getattr(cfg.dataset, "reduction_method", "mean")
+LABEL_INDICES = getattr(cfg.dataset, "label_indices", [131, 132, 133, 134, 135])
+OUTPUT_DIR = getattr(cfg.output, "base_dir", "outputs")
+CHECKPOINT_DIR = getattr(cfg.output, "checkpoint_dir", "checkpoints")
+DEBUG = getattr(cfg.experiment, "debug", False)
 
 # Config files
 CONFIG_GATING = os.path.join(os.path.dirname(__file__), "configs", "config_gating.json")
@@ -98,7 +101,9 @@ def format_special_metrics(special_metrics_per_fold, fold_ids):
                                 k: format_metric_value(v) for k, v in values.items()
                             }
                         else:
-                            fold_formatted[metric_type][task_idx] = format_metric_value(values)
+                            fold_formatted[metric_type][task_idx] = format_metric_value(
+                                values
+                            )
                 else:
                     fold_formatted[metric_type] = format_metric_value(task_data)
             formatted[f"fold_{fold_id}"] = fold_formatted
@@ -144,8 +149,20 @@ def evaluate_baseline(model, val_dataloader, config, device, task_indices, loss_
     return results
 
 
-def run_training(experiment_name, task_indices, moo_method, task_weights_tensor, dataset_path, train_dl, val_dl, nf):
-    print(f"\nStarting run_training: {experiment_name}, task_indices={task_indices}", flush=True)
+def run_training(
+    experiment_name,
+    task_indices,
+    moo_method,
+    task_weights_tensor,
+    dataset_path,
+    train_dl,
+    val_dl,
+    nf,
+):
+    print(
+        f"\nStarting run_training: {experiment_name}, task_indices={task_indices}",
+        flush=True,
+    )
     torch.manual_seed(42)
     np.random.seed(42)
     random.seed(42)
@@ -153,7 +170,7 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
     if DEBUG:
         config.training.epochs = 2
     config.model.use_mrl = False
-    if hasattr(config.model.fc_model, 'use_gating'):
+    if hasattr(config.model.fc_model, "use_gating"):
         config.model.fc_model.use_gating = False
     config.data.path = dataset_path
     config.loss.args["reduction"] = REDUCTION_METHOD
@@ -233,7 +250,9 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
     # Collect num_params from fit result (if available)
     num_params = None
     try:
-        num_params = fit_result.get("num_params") if isinstance(fit_result, dict) else None
+        num_params = (
+            fit_result.get("num_params") if isinstance(fit_result, dict) else None
+        )
     except Exception:
         num_params = None
 
@@ -246,7 +265,9 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
     # Baseline model is saved as deepmtl2r_foldX.pkl
     fold_str = os.path.basename(dataset_path).lower()
     source_model_path = os.path.join(paths.output_dir, "model.pkl")
-    destination_checkpoint_path = os.path.join(checkpoint_subdir, f"deepmtl2r_{fold_str}.pkl")
+    destination_checkpoint_path = os.path.join(
+        checkpoint_subdir, f"deepmtl2r_{fold_str}.pkl"
+    )
 
     if os.path.exists(source_model_path):
         import shutil
@@ -264,11 +285,17 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
         "dataset_path": dataset_path,
         "fold": fold_str,
         "per_task_metrics": results,
-        "special_metrics": fit_result.get("special_metrics", {}) if isinstance(fit_result, dict) else {},
+        "special_metrics": (
+            fit_result.get("special_metrics", {})
+            if isinstance(fit_result, dict)
+            else {}
+        ),
         "num_params": int(num_params) if num_params is not None else None,
     }
     try:
-        with open(os.path.join(paths.output_dir, "metrics.json"), "w", encoding="utf-8") as mf:
+        with open(
+            os.path.join(paths.output_dir, "metrics.json"), "w", encoding="utf-8"
+        ) as mf:
             json.dump(metrics_output, mf, indent=2, default=float)
     except Exception as e:
         print(f"Warning: failed to write per-run metrics file: {e}")
@@ -278,14 +305,18 @@ def run_training(experiment_name, task_indices, moo_method, task_weights_tensor,
 
 def main():
     print("=" * 60)
-    print(" Phase 1: Baseline Comparison (Single-Task vs Multi-Task) - Cross Validation")
+    print(
+        " Phase 1: Baseline Comparison (Single-Task vs Multi-Task) - Cross Validation"
+    )
     print("=" * 60)
 
     # Use task indices from YAML config (0=Relevance, 132-135=Auxiliary)
     default_task_indices = [0, 131, 132, 133, 134, 135]
     print(f"\nDefault task indices: {default_task_indices}")
-    user_input = input("Enter task indices as comma-separated values (or press Enter to use default): ").strip()
-    
+    user_input = input(
+        "Enter task indices as comma-separated values (or press Enter to use default): "
+    ).strip()
+
     if user_input:
         try:
             task_indices_mt = list(map(int, user_input.split(",")))
@@ -296,7 +327,7 @@ def main():
     else:
         task_indices_mt = list(map(int, cfg.tasks.indices.split(",")))
         print(f"Using task indices from YAML: {task_indices_mt}")
-    
+
     task_indices_st = [0]  # Single task is only Relevance (task 0)
 
     # Aggregators for standard metrics across folds
@@ -313,32 +344,44 @@ def main():
         print(f"\n" + "=" * 60)
         print(f" Processing Fold {fold}")
         print("=" * 60)
-        
+
         dataset_path = os.path.join(DATASET_BASE_PATH, f"Fold{fold}")
 
         if not os.path.exists(dataset_path):
             raise FileNotFoundError(f"Dataset path not found: {dataset_path}")
 
         print(f"Dataset path exists: {dataset_path}", flush=True)
-        
+
         config = Config.from_json(CONFIG_GATING)
-        
+
         # Calculate max_rows for debug mode
         max_rows = None
         if DEBUG:
-            debug_ratio = cfg.experiment.get('debug_ratio', 0.1)
+            debug_ratio = cfg.experiment.get("debug_ratio", 0.1)
             if debug_ratio > 0:
                 estimated_total_rows = 30000000
                 max_rows = max(1, int(estimated_total_rows * debug_ratio))
-                print(f"[DEBUG] DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)", flush=True)
+                print(
+                    f"[DEBUG] DEBUG MODE ENABLED - will limit to approximately {max_rows} rows ({debug_ratio*100:.4f}%)",
+                    flush=True,
+                )
             else:
-                print(f"[DEBUG] DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset", flush=True)
-        
+                print(
+                    f"[DEBUG] DEBUG MODE: debug_ratio is {debug_ratio}, loading full dataset",
+                    flush=True,
+                )
+
         print(f"Loading LibSVM dataset from {dataset_path}...", flush=True)
         train_ds, val_ds = load_libsvm_dataset(
-            dataset_path, config.data.slate_length, config.data.validation_ds_role, max_rows=max_rows
+            dataset_path,
+            config.data.slate_length,
+            config.data.validation_ds_role,
+            max_rows=max_rows,
         )
-        print(f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}", flush=True)
+        print(
+            f"Dataset loaded! Train shape: {train_ds.shape}, Val shape: {val_ds.shape}",
+            flush=True,
+        )
 
         print(f"Creating data loaders...", flush=True)
         nf = train_ds.shape[-1] - len(LABEL_INDICES)
@@ -348,35 +391,51 @@ def main():
         print(f"Data loaders created! nf={nf}", flush=True)
 
         # 1. Single Task
-        res_st = run_training(f"Single-Task-Fold{fold}", task_indices_st, "ls", torch.tensor([1.0]), dataset_path, train_dl, val_dl, nf)
+        res_st = run_training(
+            f"Single-Task-Fold{fold}",
+            task_indices_st,
+            "ls",
+            torch.tensor([1.0]),
+            dataset_path,
+            train_dl,
+            val_dl,
+            nf,
+        )
         per_task_st = res_st.get("per_task_metrics", {})
         # Collect Task 0 NDCG@30 for delta_m
         ndcg30_st = per_task_st.get(0, {}).get("ndcg_30", 0.0)
         all_ndcg30_st.append(ndcg30_st)
-        
+
         # Aggregate all tasks (though ST is usually just task 0)
         for t_idx, t_metrics in per_task_st.items():
             for k, v in t_metrics.items():
                 metrics_agg_st[f"Task_{t_idx}_{k}"].append(float(v))
-        
+
         params_st.append(res_st.get("num_params"))
         special_st.append(res_st.get("special_metrics", {}))
 
         # 2. Multi Task
         num_tasks = len(task_indices_mt)
         res_mt = run_training(
-            f"Multi-Task-Vanilla-Fold{fold}", task_indices_mt, "ls", [1.0 / num_tasks] * num_tasks, dataset_path, train_dl, val_dl, nf
+            f"Multi-Task-Vanilla-Fold{fold}",
+            task_indices_mt,
+            "ls",
+            [1.0 / num_tasks] * num_tasks,
+            dataset_path,
+            train_dl,
+            val_dl,
+            nf,
         )
         per_task_mt = res_mt.get("per_task_metrics", {})
         # Collect Task 0 NDCG@30 for delta_m
         ndcg30_mt = per_task_mt.get(0, {}).get("ndcg_30", 0.0)
         all_ndcg30_mt.append(ndcg30_mt)
-        
+
         # Aggregate all tasks (Main + Auxiliary)
         for t_idx, t_metrics in per_task_mt.items():
             for k, v in t_metrics.items():
                 metrics_agg_mt[f"Task_{t_idx}_{k}"].append(float(v))
-        
+
         params_mt.append(res_mt.get("num_params"))
         special_mt.append(res_mt.get("special_metrics", {}))
 
@@ -385,6 +444,7 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         import gc
+
         gc.collect()
 
     # Compute Averages for primary metric
@@ -405,8 +465,16 @@ def main():
 
     summary_st = summarize_metrics(metrics_agg_st)
     summary_mt = summarize_metrics(metrics_agg_mt)
-    avg_params_st = float(np.mean([p for p in params_st if p is not None])) if any(p is not None for p in params_st) else 0.0
-    avg_params_mt = float(np.mean([p for p in params_mt if p is not None])) if any(p is not None for p in params_mt) else 0.0
+    avg_params_st = (
+        float(np.mean([p for p in params_st if p is not None]))
+        if any(p is not None for p in params_st)
+        else 0.0
+    )
+    avg_params_mt = (
+        float(np.mean([p for p in params_mt if p is not None]))
+        if any(p is not None for p in params_mt)
+        else 0.0
+    )
 
     # Compute Delta m%
     if avg_ndcg30_st > 0:
@@ -448,11 +516,11 @@ def main():
         for metric_key in sorted(mt_tasks[task_id].keys()):
             formatted_val = mt_tasks[task_id][metric_key]["formatted"]
             print(f"    {metric_key}: {formatted_val}")
-            
+
             mean_val = mt_tasks[task_id][metric_key]["mean"]
             if not np.isnan(mean_val):
                 global_metrics[metric_key].append(mean_val)
-                
+
     print(f"\n  --- Global Averages (All Tasks) ---")
     for metric_key in sorted(global_metrics.keys()):
         g_avg = float(np.mean(global_metrics[metric_key]))
@@ -521,7 +589,11 @@ def main():
         },
     }
 
-    with open(os.path.join(OUTPUT_DIR, "baselines", "baseline_summary.json"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(OUTPUT_DIR, "baselines", "baseline_summary.json"),
+        "w",
+        encoding="utf-8",
+    ) as f:
         json.dump(summary_out, f, indent=2, default=float)
 
 
