@@ -1,0 +1,111 @@
+% Section: Results and Evaluation
+\section{Results and Evaluation}
+
+\subsection{Quantitative Ranking Results}
+
+The experimental results for the MSLR-WEB10K ranking tasks across all models are summarized in Table~\ref{tab:results_primary} for the primary task and Table~\ref{tab:results_auxiliary} for the auxiliary tasks. The primary task (Task~0) is evaluated using NDCG at multiple cutoff ranks, while the auxiliary tasks (Tasks~131, 132, 133) are evaluated using NDCG@10 and NDCG@30. Task~132 NDCG values for the Multi-Task Baseline are undefined (\texttt{NaN}) for Fold~2 due to a degenerate slate where all documents share identical relevance labels; only Fold~1 values are reported.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{\label{tab:results_primary} Primary task (Task~0) NDCG scores averaged over Folds 1
+  and 2 on the test split.}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Model / Config} & \textbf{NDCG@1} & \textbf{NDCG@5} & \textbf{NDCG@10}
+    & \textbf{NDCG@20} & \textbf{NDCG@30} \\
+    \midrule
+    Single-Task Baseline    & $0.0714$ & $0.6836$ & $0.6836$ & $0.6836$ & $0.6836$ \\
+    Multi-Task Baseline     & $0.5000$ & $0.8155$ & $0.8155$ & $0.8155$ & $0.8155$ \\
+    \midrule
+    \multicolumn{6}{l}{\textbf{Dynamic Feature Gating (DFG)}} \\
+    \quad $W_0$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2997$ \\
+    \quad $W_1$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_2$ & $0.1522$ & $0.1823$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_3$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_4$ & $0.1519$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_5$ & $0.1519$ & $0.1821$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \midrule
+    \multicolumn{6}{l}{\textbf{Matryoshka Feature Projection (MFP)}} \\
+    \quad $W_0$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_1$ & $0.1521$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_2$ & $0.1521$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_3$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_4$ & $0.1520$ & $0.1822$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \quad $W_5$ & $0.1519$ & $0.1821$ & $0.2122$ & $0.2588$ & $0.2998$ \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+\begin{table}[!htbp]
+  \centering
+  \caption{\label{tab:results_auxiliary} Auxiliary task NDCG scores averaged over Folds 1 and 2
+  on the test split.}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Model / Config} & \multicolumn{2}{c}{\textbf{Task 131}}
+    & \multicolumn{2}{c}{\textbf{Task 132}} & \multicolumn{2}{c}{\textbf{Task 133}} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+    & \textbf{@10} & \textbf{@30} & \textbf{@10} & \textbf{@30} & \textbf{@10} & \textbf{@30} \\
+    \midrule
+    Multi-Task Baseline & $0.5658$ & $0.5658$ & $0.5000^{\dagger}$
+    & $0.5000^{\dagger}$ & $1.0000$ & $1.0000$ \\
+    \midrule
+    \multicolumn{7}{l}{\textbf{Dynamic Feature Gating (DFG)}} \\
+    \quad $W_0$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \quad $W_1$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \quad $W_2$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \quad $W_3$ & $0.2434$ & $0.3357$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \quad $W_4$ & $0.2434$ & $0.3357$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \quad $W_5$ & $0.2434$ & $0.3357$ & $0.2554$ & $0.3409$ & $0.3992$ & $0.4341$ \\
+    \midrule
+    \multicolumn{7}{l}{\textbf{Matryoshka Feature Projection (MFP)}} \\
+    \quad $W_0$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \quad $W_1$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \quad $W_2$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \quad $W_3$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \quad $W_4$ & $0.2434$ & $0.3357$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \quad $W_5$ & $0.2434$ & $0.3358$ & $0.2554$ & $0.3461$ & $0.3992$ & $0.4341$ \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \par\smallskip
+  {\footnotesize $^{\dagger}$Task~132 NDCG for the Multi-Task Baseline is reported from Fold~1 only; Fold~2 produced an undefined value due to a degenerate slate with uniform relevance labels.}
+\end{table}
+
+\begin{table}[!htbp]
+  \centering
+  \caption{\label{tab:baseline_folds} Per-fold NDCG@1 and NDCG@10 breakdown for baseline models on the primary task (Task~0).}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{lcccccc}
+    \toprule
+    & \multicolumn{3}{c}{\textbf{NDCG@1}} & \multicolumn{3}{c}{\textbf{NDCG@10}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+    \textbf{Baseline Model} & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Average}
+    & \textbf{Fold 1} & \textbf{Fold 2} & \textbf{Average} \\
+    \midrule
+    Single-Task Baseline & $0.0000$ & $0.1429$ & $0.0714$ & $0.6309$ & $0.7364$ & $0.6836$ \\
+    Multi-Task Baseline  & $0.0000$ & $1.0000$ & $0.5000$ & $0.6309$ & $1.0000$ & $0.8155$ \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+Table~\ref{tab:baseline_folds} presents the per-fold NDCG@1 and NDCG@10 results for the baseline models. The Single-Task Baseline achieved an average NDCG@10 of $0.6836$, whereas the Multi-Task Baseline reported a substantially higher average score of $0.8155$. Nevertheless, this apparent improvement is primarily caused by a dataset artifact. In Fold~2, the Multi-Task Baseline obtained a perfect score of $1.0000$ on the primary task, while Task~133 also reached exactly $1.0000$. This outcome arises from a tie-breaking artifact induced by the pre-sorted order of the Fold~2 test split rather than from meaningful ranking performance. By contrast, both baseline models produced identical results on Fold~1.
+
+Both DFG and MFP models exhibited severely degraded ranking performance across all NDCG cutoffs, stagnant at NDCG@1~$\approx 0.152$, NDCG@10~$\approx 0.212$, and NDCG@30~$\approx 0.300$ across all weight configurations. Notably, scores are nearly identical across all six weight configurations ($W_0$--$W_5$) for both models; this uniformity is a direct consequence of the NaN gradient collapse described in Section~\ref{sec:nan}, which froze all model weights at their initialized values before any task-weight differences could take effect.
+
+\subsection{Numerical Collapse Analysis (NaN Loss)}
+\label{sec:nan}
+
+All three models experienced a numerical collapse that produced \texttt{NaN} training losses from the first epoch and froze all weights at initialization. This failure originates from the \texttt{ndcgLoss2PP\_scheme} in the \texttt{allrank} library \cite{wang2018lambdaloss}, whose exponential gain function $2^{y}-1$ remains stable for primary task labels ($y \in [0,4]$) but overflows \texttt{float32} precision ($2^{128}$) when applied to unnormalized auxiliary targets such as click counts up to $13.15 \times 10^{6}$ and quality scores up to $254$, immediately producing \texttt{inf} and \texttt{NaN} gradients.
+
+Because the DeepMTL2R framework enforces a uniform loss formulation across all tasks and lacks a built-in target normalization pipeline, applying it directly to standard datasets with continuous auxiliary targets inevitably triggers this overflow. Thus, this failure highlights a structural limitation in the baseline framework's multi-task loss handling, rather than an experimental oversight.
+
+Despite the training collapse, validation metrics were still logged because we introduced a custom safeguard in \texttt{allrank/models/metrics.py} during debugging, where any slate containing a target value greater than $4.0$ triggers the gain function to switch from the exponential form ($2^{y}-1$) to the linear form ($y$), thereby preventing \texttt{NaN} metrics. This modification is not part of the original DeepMTL2R architecture; consequently, the evaluation metrics reflect frozen, randomly initialized weights rather than learned behavior.
+
+\subsection{Secondary Metrics Under Frozen Weights}
+
+The remaining evaluation metrics, including gating sparsity, noise robustness, and Matryoshka dimensional efficiency, all reflect the same underlying issue caused by the \texttt{NaN} gradient collapse and the resulting frozen weights. DFG gating sparsity remained exactly $0.0000$ because the initialized biases $\mathbf{b}_g \approx 0$ generated mask values near $\sigma(0) = 0.5$, which stayed above the pruning threshold of $0.1$. Noise robustness also exhibited a $0.0\%$ performance drop for both models, as frozen parameters produced a static ranking that was unaffected by input perturbations. Likewise, all MFP dimensional slices from 32D to 256D yielded identical NDCG scores instead of the expected coarse-to-fine improvement. These anomalies are expected to disappear once the numerical instability is resolved.

@@ -1,0 +1,45 @@
+% Main LaTeX Document for DeepMTL2R Paper
+% Reorganized with modular structure
+% 
+% This is the main entry point. Compile this file with:
+%   pdflatex main.tex && bibtex main.tex && pdflatex main.tex && pdflatex main.tex
+\documentclass[11pt]{article}
+% Load configuration and packages from preamble
+\input{preamble.tex}
+% ============================================================================
+% Document Metadata
+% ============================================================================
+\title{Extending DeepMTL2R: Multi-Task Learning to Rank with Dynamic Feature Gating and Matryoshka Feature Projection}
+% Author information
+\author{Jeslyn Theodora \\
+  Faculty of Computer Science \\
+  University of Indonesia \\
+  \texttt{jeslyn.theodora@ui.ac.id} \\\And
+  Maulana Seto \\
+  Faculty of Computer Science \\
+  University of Indonesia \\
+  \texttt{maulana.seto@ui.ac.id} \\}
+% ============================================================================
+% Document Content
+% ============================================================================
+\begin{document}
+
+% Abstract
+\begin{abstract}
+Multi-task Learning to Rank (MTL2R) jointly optimizes multiple ranking criteria, allowing models to capture diverse aspects of document quality beyond a single relevance signal. This paper extends the DeepMTL2R framework through two architectural modifications, namely \textbf{Dynamic Feature Gating} (DFG), which employs a sigmoid-activated learnable mask over input features to suppress low-information dimensions, and \textbf{Matryoshka Feature Projection} (MFP), which reorganizes the output layer to generate nested representations that can be sliced at inference time without retraining. Both extensions are evaluated on the MSLR-WEB10K benchmark under six task-weight configurations across two folds. Experiments reveal a critical numerical failure in which the listwise LambdaLoss gain function $2^{y}-1$ exceeds \texttt{float32} precision when applied to unnormalized auxiliary targets, producing \texttt{NaN} gradients from the first epoch and freezing all model weights at their initialized values. Consequently, both DFG and MFP are unable to demonstrate their intended benefits. We identify target normalization and task-specific loss decoupling as the primary remedies, and discuss their implications for future work.
+\end{abstract}
+
+\maketitle
+% ============================================================================
+% Main Content Sections
+% ============================================================================
+\input{sections/01_introduction.tex}
+\input{sections/02_method.tex}
+\input{sections/03_experiments.tex}
+\input{sections/04_results.tex}
+\input{sections/05_conclusion.tex}
+% ============================================================================
+% Bibliography
+% ============================================================================
+\bibliography{bib/custom}
+\end{document}

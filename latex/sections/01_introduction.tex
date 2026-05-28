@@ -1,0 +1,14 @@
+% Section: Introduction
+\section{Introduction}
+
+Learning to Rank (LTR) is a foundational component of modern information retrieval systems, underpinning applications such as web search engines and recommendation systems. Traditionally, LTR techniques optimize for a single objective, such as relevance \cite{yan2023learningrankgradesmatter}. However, real-world ranking environments must balance multiple noisy, subjective, and heterogeneous signals. Multi-Task Learning to Rank (MTL2R) addresses this challenge by jointly modeling auxiliary criteria \cite{Caruana1997MultitaskL}, allowing ranking decisions to better reflect diverse facets of document quality and search intent.
+
+DeepMTL2R is an open-source deep learning library that implements MTL2R via self-attention mechanisms in transformer architectures \cite{dong2026deepmtl2rlibrarydeepmultitask}. However, its core architecture has two limitations: it lacks explicit feature selection (recent CTR architectures show gating masks improve representation quality and interpretability \cite{huang2020gatenet,wang2021masknet}), and its fixed-dimension output cannot serve rankings at different granularities. In commercial multi-stage retrieval pipelines \cite{covington2016deep}, this forces practitioners to either maintain multiple separate models or compromise on retrieval latency.
+
+To address these limitations, we introduce two architectural extensions to the DeepMTL2R framework:\footnote{Our implementation is available at: \href{https://github.com/jteo0/DeepMTL2R}{\texttt{github.com/jteo0/DeepMTL2R}}}
+\begin{itemize}
+    \item \textbf{Dynamic Feature Gating} introduces a sigmoid-activated linear mask prior to the input projection layer to suppress low-information features dynamically during training, inspired by gating networks \cite{huang2020gatenet,wang2021masknet}.
+    \item \textbf{Matryoshka Feature Projection} restructures the output layer to enforce Matryoshka Representation Learning (MRL) \cite{kusupati2022matryoshka}, allowing the model to produce nested embeddings that can be adaptively sliced at inference without retraining.
+\end{itemize}
+
+Both extensions are evaluated against the DeepMTL2R baseline on the MSLR-WEB10K dataset under six task-weight configurations, reporting NDCG at multiple cutoffs, MAP@10, and MRR@10. We further analyze gating sparsity, noise robustness, and the dimensional efficiency of Matryoshka representations across nesting dimensions $\mathcal{M} = \{32, 64, 128, 256\}$.

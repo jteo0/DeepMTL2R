@@ -1,0 +1,26 @@
+# .gitignore untuk LaTeX projects
+
+# Temporary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.synctex.gz
+*~
+
+# Generated PDFs (optional - uncomment if you don't want to track them)
+# *.pdf
+
+# IDE/Editor specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*DS_Store
+
+# OS specific
+Thumbs.db

@@ -1,0 +1,52 @@
+% Template LaTeX: Standar Sections
+% Gunakan file ini sebagai template untuk membuat section baru
+
+\section{Your Section Title Here}
+
+\subsection{Subsection Title}
+
+Tulis konten Anda di sini. Gunakan struktur berikut:
+
+\subsubsection{Subsubsection (if needed)}
+
+Dengan struktur modular ini, Anda dapat:
+\begin{itemize}
+    \item Fokus pada satu section tanpa distraksi
+    \item Dengan mudah collaborate dengan tim member lain
+    \item Maintain version control yang lebih baik
+\end{itemize}
+
+\subsection{Another Subsection}
+
+\textbf{Tips:}
+\begin{enumerate}
+    \item Gunakan descriptive section titles
+    \item Simpan images di direktori \texttt{images/}
+    \item Tambahkan references ke \texttt{bib/custom.bib}
+    \item Cite dengan \texttt{\textbackslash cite\{key\}}
+\end{enumerate}
+
+% Contoh Figure
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\columnwidth]{images/example.png}
+  \caption{Your caption here}
+  \label{fig:example}
+\end{figure}
+
+% Contoh Table
+\begin{table}[h]
+  \centering
+  \caption{\label{tab:example}
+    Your table caption here.
+  }
+  \begin{tabular}{lll}
+    \hline
+    \textbf{Column 1} & \textbf{Column 2} & \textbf{Column 3} \\
+    \hline
+    data1 & data2 & data3 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+% Note: Jangan lupa tambahkan \input{sections/your_file.tex} di main.tex!

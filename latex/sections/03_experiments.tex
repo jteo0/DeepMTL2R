@@ -1,0 +1,76 @@
+% Section: Experiments
+\section{Experiments}
+
+\subsection{Experimental Dataset}
+
+We evaluate our proposed methods on the MSLR-WEB10K dataset \cite{QinL13}, a standard and publicly available benchmark for learning-to-rank. The dataset consists of query-document slates, where each document has been labeled with a discrete relevance score ranging from 0 (irrelevant) to 4 (perfectly relevant) based on search engine queries.
+
+Following a multi-task ranking setup, the 136 original features of MSLR-WEB10K are partitioned into input features and auxiliary targets, with three continuous features reserved as auxiliary target outputs
+\begin{itemize}
+    \item \textbf{Task 131 (QualityScore)}, corresponding to Feature 132 in the dataset, represents a document quality metric;
+    \item \textbf{Task 132 (QualityScore2)}, corresponding to Feature 133 in the dataset, represents a secondary document quality metric; and
+    \item \textbf{Task 133 (Query-URL click count)}, corresponding to Feature 134 in the dataset, represents historical user interaction frequency.
+\end{itemize}
+These three features are excluded from the model's feature space, leaving $d = 133$ features as model inputs. We evaluate all models across Fold 1 and Fold 2 of the dataset. For each fold, we train on the training split for exactly 50 epochs, monitor the validation set performance, and report the final metrics on the test split using the model state from the final training epoch.
+
+\subsection{Models and Baselines}
+To assess the effectiveness of Dynamic Feature Gating (DFG) and Matryoshka Feature Projection (MFP), we compare four models consisting of two baselines and two proposed extensions.
+
+\begin{enumerate}
+    \item \textbf{Single-Task Baseline} represents the
+    standard DeepMTL2R pipeline trained exclusively on
+    the primary relevance objective (Task~0), without
+    incorporating auxiliary supervision.
+
+    \item \textbf{Vanilla Multi-Task Baseline}
+    corresponds to the original DeepMTL2R framework
+    jointly optimized across all four tasks using equal
+    loss weighting ($[1.0, 1.0, 1.0, 1.0]$).
+
+    \item \textbf{Dynamic Feature Gating (DFG)}
+    extends DeepMTL2R with a learnable soft gating mask
+    applied to the 133 input features before the feature
+    projection stage.
+
+    \item \textbf{Matryoshka Feature Projection (MFP)}
+    modifies the framework by introducing nested
+    representation slicing at the output layer across
+    dimensions $\mathcal{M} = \{32, 64, 128, 256\}$.
+\end{enumerate}
+
+\subsection{Multi-Task Weight Configurations}
+
+To map the Pareto frontier of multi-task performance, both extension models (DFG and MFP) are trained across six distinct task-weight configurations $\mathbf{w} = [w_0, w_1, w_2, w_3]$ as detailed in Table~\ref{tab:weights}, where $w_0$ represents the weight of the primary task and $w_1, w_2, w_3$ represent the weights of the auxiliary tasks. These weights are scalarized linearly as training objectives, meaning the overall loss function is computed as the weighted sum of the individual task losses ($L_{total} = \sum_{i=0}^{3} w_i L_i$).
+
+Consequently, assigning a higher weight to a specific task forces the model to prioritize minimizing its loss, effectively steering the learning capacity toward that signal. The vanilla multi-task baseline is trained using uniform task weights scaled to $[1.0, 1.0, 1.0, 1.0]$, representing an equivalent ratio to $W_0$.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{\label{tab:weights} Task weight configurations for linear scalarization.}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{ccl}
+    \toprule
+    \textbf{Configuration} & \textbf{Weights} $[w_0, w_1, w_2, w_3]$ & \textbf{Description} \\
+    \midrule
+    $W_0$ & $[0.25, 0.25, 0.25, 0.25]$ & Uniform task weighting \\
+    $W_1$ & $[0.70, 0.10, 0.10, 0.10]$ & Main task highly focused \\
+    $W_2$ & $[0.40, 0.20, 0.20, 0.20]$ & Main task moderately focused \\
+    $W_3$ & $[0.10, 0.70, 0.10, 0.10]$ & QualityScore (Task 1) focused \\
+    $W_4$ & $[0.10, 0.10, 0.70, 0.10]$ & QualityScore2 (Task 2) focused \\
+    $W_5$ & $[0.10, 0.10, 0.10, 0.70]$ & Click count (Task 3) focused \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
+
+\subsection{Evaluation Metrics}
+
+We evaluate the ranking performance of the models using several standard LTR and multi-task metrics.
+
+\begin{itemize}
+    \item \textbf{NDCG@k} denotes the Normalized Discounted Cumulative Gain evaluated at cutoff ranks $k \in \{1, 5, 10, 20, 30\}$. Among these, NDCG@10 on the primary task (Task~0) is monitored on the validation split during training and used as the primary comparison metric.
+    \item \textbf{MAP@10} represents the Mean Average Precision computed at rank 10 on the primary task.
+    \item \textbf{MRR@10} corresponds to the Mean Reciprocal Rank evaluated at rank 10 on the primary task.
+    \item \textbf{Noise Robustness Drop} measures the resilience of the models under noisy input conditions by injecting zero-mean Gaussian noise $\epsilon \sim \mathcal{N}(0, \sigma^2)$ into the feature vectors, where $\sigma^2$ is fixed at $10\%$ of the feature variance. Both absolute and relative percentage drops are computed across all evaluation metrics, including NDCG at all cutoffs, MAP, and MRR, to assess multi-task ranking robustness.
+    \item \textbf{Dimensional Efficiency (MFP only)} evaluates partial slices of the Matryoshka output representations at dimensions 32, 64, and 128 to determine how effectively lower-dimensional embeddings preserve ranking performance.
+\end{itemize}
